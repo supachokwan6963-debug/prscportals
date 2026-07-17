@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สภานักเรียนโรงเรียนพิริยาลัยจังหวัดแพร่ | PRSC</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // กำหนด Custom Colors สำหรับ Tailwind
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        prsc: {
+                            red: '#D32F2F',    // สีแดงประจำโรงเรียน
+                            navy: '#0B132B',   // สีกรมท่าเข้ม (Blue-950 equivalent)
+                            light: '#F8FAFC'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+    <header class="sticky top-0 z-40 bg-prsc-navy text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-prsc-red rounded-full flex items-center justify-center font-bold text-lg shadow-md">
+                        P
+                    </div>
+                    <div>
+                        <span class="font-bold text-lg tracking-wide block leading-tight">PRSC</span>
+                        <span class="text-xs text-slate-300 hidden sm:block">สภานักเรียนโรงเรียนพิริยาลัยจังหวัดแพร่</span>
+                    </div>
+                </div>
+
+                <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
+                    <a href="#hero" class="hover:text-prsc-red transition-colors">หน้าแรก</a>
+                    <a href="#about" class="hover:text-prsc-red transition-colors">เกี่ยวกับสภาฯ</a>
+                    <a href="#hive" class="hover:text-prsc-red transition-colors">ระบบร้องเรียน (The Hive)</a>
+                    <a href="#contact" class="hover:text-prsc-red transition-colors">ติดต่อเรา</a>
+                </nav>
+
+                <div class="flex items-center gap-4">
+                    <div id="user-info" class="hidden items-center gap-3">
+                        <span id="user-email" class="text-xs text-slate-200 hidden sm:inline-block"></span>
+                        <button id="btn-logout" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-all shadow">
+                            <i class="fa-solid fa-right-from-bracket mr-1"></i> ออกจากระบบ
+                        </button>
+                    </div>
+
+                    <button id="btn-open-login" class="bg-prsc-red hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md flex items-center gap-2">
+                        <i class="fa-solid fa-user"></i> <span>เข้าสู่ระบบ</span>
+                    </button>
+
+                    <button id="btn-hamburger" class="md:hidden text-slate-200 hover:text-white focus:outline-none text-xl p-1">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class="hidden md:hidden bg-blue-950 border-t border-slate-800 px-4 pt-2 pb-4 space-y-2">
+            <a href="#hero" class="block py-2 text-sm hover:text-prsc-red">หน้าแรก</a>
+            <a href="#about" class="block py-2 text-sm hover:text-prsc-red">เกี่ยวกับสภาฯ</a>
+            <a href="#hive" class="block py-2 text-sm hover:text-prsc-red">ระบบร้องเรียน (The Hive)</a>
+            <a href="#contact" class="block py-2 text-sm hover:text-prsc-red">ติดต่อเรา</a>
+        </div>
+    </header>
+
+    <section id="hero" class="relative bg-gradient-to-br from-prsc-navy via-blue-900 to-prsc-red text-white py-24 sm:py-32 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <span class="bg-white/10 text-slate-200 text-xs sm:text-sm font-semibold px-4 py-1.5 rounded-full border border-white/20 uppercase tracking-wider inline-block mb-4">
+                Voice of Phiriyalai Students
+            </span>
+            <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight font-heading">
+                เสียงของคุณ มีพลังในการ<br class="hidden sm:inline"><span class="text-prsc-red bg-white px-2 rounded-md inline-block mt-1">พัฒนาโรงเรียน</span>
+            </h1>
+            <p class="max-w-2xl mx-auto text-slate-200 text-sm sm:text-base mb-8">
+                ร่วมขับเคลื่อนโรงเรียนพิริยาลัยจังหวัดแพร่ไปกับเรา แจ้งปัญหา เสนอแนะแนวทาง หรือร้องเรียนเรื่องราวต่างๆ ผ่านระบบ "The Hive" รังผึ้งแห่งปัญหาที่เราจะช่วยกันแก้ไข
+            </p>
+            <div class="flex justify-center gap-4">
+                <a href="#hive" class="bg-prsc-red hover:bg-red-700 text-white font-medium px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2 text-sm sm:text-base">
+                    <i class="fa-solid fa-bullhorn"></i> แจ้งเรื่องร้องเรียน
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section id="hive" class="py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-2xl sm:text-4xl font-bold text-prsc-navy font-heading mb-3">
+                <i class="fa-solid fa-hive text-prsc-red mr-2"></i>ระบบร้องเรียน "The Hive"
+            </h2>
+            <p class="text-slate-600 text-sm sm:text-base">
+                ทุกปัญหาของคุณคือเสียงสำคัญที่สภานักเรียนพร้อมรับฟังและประสานงานแก้ไข
+            </p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-slate-100">
+            <form id="hive-form" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-semibold text-prsc-navy mb-2">หมวดหมู่เรื่องร้องเรียน <span class="text-prsc-red">*</span></label>
+                    <select id="complaint-category" required class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-prsc-red focus:border-prsc-red outline-none transition text-sm">
+                        <option value="">-- กรุณาเลือกหมวดหมู่ --</option>
+                        <option value="academic">ด้านวิชาการ / การเรียนการสอน</option>
+                        <option value="facilities">ด้านอาคารสถานที่ / สิ่งอำนวยความสะดวก</option>
+                        <option value="welfare">ด้านสวัสดิการ / โรงอาหาร</option>
+                        <option value="activity">ด้านกิจกรรมนักเรียน</option>
+                        <option value="other">เรื่องอื่นๆ</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-prsc-navy mb-2">หัวข้อเรื่อง <span class="text-prsc-red">*</span></label>
+                    <input type="text" id="complaint-title" required placeholder="เช่น พัดลมในห้องปฏิบัติการคอมพิวเตอร์เสีย" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-prsc-red focus:border-prsc-red outline-none transition text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-prsc-navy mb-2">รายละเอียดเพิ่มเติม <span class="text-prsc-red">*</span></label>
+                    <textarea id="complaint-detail" rows="4" required placeholder="ระบุรายละเอียด วันที่ เวลา หรือสถานที่เกิดเหตุให้ชัดเจนเพื่อความรวดเร็วในการตรวจสอบ..." class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-prsc-red focus:border-prsc-red outline-none transition text-sm"></textarea>
+                </div>
+
+                <div class="flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="complaint-anonymous" class="w-5 h-5 text-prsc-red focus:ring-prsc-red rounded border-slate-300">
+                        <label for="complaint-anonymous" class="text-sm font-medium text-slate-700 cursor-pointer">
+                            ส่งแบบไม่ประสงค์ออกนาม (Anonymous)
+                        </label>
+                    </div>
+                    <span class="text-xs text-slate-400 hidden sm:inline">เพื่อความสบายใจในการแจ้งปัญหา</span>
+                </div>
+
+                <button type="submit" id="btn-submit-complaint" class="w-full bg-prsc-navy hover:bg-blue-900 text-white font-medium py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all text-sm sm:text-base flex justify-center items-center gap-2">
+                    <i class="fa-solid fa-paper-plane text-prsc-red"></i> ส่งเรื่องเข้ารังผึ้ง
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl max-w-md w-full mx-4 overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300" id="login-modal-card">
+            <div class="bg-prsc-navy text-white p-6 relative flex justify-between items-center">
+                <div>
+                    <h3 class="text-lg font-bold font-heading">เข้าสู่ระบบสภานักเรียน</h3>
+                    <p class="text-xs text-slate-300 mt-0.5">เฉพาะอีเมลองค์กร @phiriyalai.ac.th เท่านั้น</p>
+                </div>
+                <button id="btn-close-login" class="text-slate-400 hover:text-white text-lg focus:outline-none">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <button id="btn-google-login" class="w-full bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-3 text-sm">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="w-5 h-5">
+                    เข้าสู่ระบบด้วย Google Account
+                </button>
+
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-slate-200"></div>
+                    <span class="flex-shrink mx-3 text-xs text-slate-400">หรือใช้อีเมลและรหัสผ่าน</span>
+                    <div class="flex-grow border-t border-slate-200"></div>
+                </div>
+
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">อีเมลโรงเรียน</label>
+                        <input type="email" id="login-email" required placeholder="student@phiriyalai.ac.th" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-prsc-navy outline-none text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">รหัสผ่าน</label>
+                        <input type="password" id="login-password" required placeholder="••••••••" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-prsc-navy outline-none text-sm">
+                    </div>
+                    
+                    <div id="login-error" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-lg border border-red-200"></div>
+
+                    <button type="submit" class="w-full bg-prsc-red hover:bg-red-700 text-white font-medium py-2.5 rounded-xl shadow transition text-sm">
+                        เข้าสู่ระบบ
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 max-w-xs w-full pointer-events-none"></div>
+
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>

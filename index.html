@@ -1,208 +1,391 @@
+<?php
+// =================================================================
+// ⚙️ ส่วนตั้งค่าคอนฟิกหลังบ้าน (PHP Server-Side)
+// นำค่าจากหน้า Settings > API ของ Supabase มาเติมในเครื่องหมายคำพูดด้านล่างนี้
+// =================================================================
+$supabase_url      = "dkuyxaujvhqanloqcgbh"; 
+$supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdXl4YXVqdmhxYW5sb3FjZ2JoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyODg3OTcsImV4cCI6MjA5OTg2NDc5N30.GR2gCIWtqokqa5YBgXv1H1QsKQlPiDj9UF4i8C7BMmI";
+?>
 <!DOCTYPE html>
-<html lang="th" class="scroll-smooth">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>สภานักเรียนโรงเรียนพิริยาลัยจังหวัดแพร่ | PRSC</title>
+    <title>PRSC Portals - ระบบนักเรียน (เวอร์ชัน PHP)</title>
     
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@500;600;700&display=swap" rel="stylesheet">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        // กำหนด Custom Colors และตั้งค่าฟอนต์สำหรับ Tailwind
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        prsc: {
-                            red: '#D32F2F',    // สีแดงประจำโรงเรียน
-                            navy: '#0B132B',   // สีกรมท่าเข้ม
-                            light: '#F8FAFC'
-                        }
-                    },
-                    // บังคับใช้ IBM Plex Sans Thai เป็นฟอนต์หลักของระบบ
-                    fontFamily: {
-                        sans: ['"IBM Plex Sans Thai"', 'sans-serif'],
-                        heading: ['"Prompt"', '"IBM Plex Sans Thai"', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght=400;500;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; }
+        .theme-red { color: #8B0000; }
+        .theme-bg-red { background-color: #8B0000; }
+        .theme-border-red { border-color: #8B0000; }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased font-sans">
+<body class="text-slate-800">
 
-    <header class="sticky top-0 z-40 bg-prsc-navy text-white shadow-lg">
+    <nav class="bg-white shadow-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-prsc-red rounded-full flex items-center justify-center font-bold text-lg shadow-md font-heading">
-                        P
-                    </div>
-                    <div>
-                        <span class="font-bold text-lg tracking-wide block leading-tight font-heading">PRSC</span>
-                        <span class="text-xs text-slate-300 hidden sm:block">สภานักเรียนโรงเรียนพิริยาลัยจังหวัดแพร่</span>
-                    </div>
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold theme-red flex items-center gap-2">
+                        <i class="fa-solid fa-graduation-cap"></i> PRSC PORTALS
+                    </span>
+                    <span class="ml-3 px-2 py-0.5 bg-red-100 theme-red text-xs font-bold rounded-full">PHP Edition</span>
                 </div>
-
-                <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
-                    <a href="#hero" class="hover:text-prsc-red transition-colors">หน้าแรก</a>
-                    <a href="#about" class="hover:text-prsc-red transition-colors">เกี่ยวกับสภาฯ</a>
-                    <a href="#hive" class="hover:text-prsc-red transition-colors">ระบบร้องเรียน (The Hive)</a>
-                    <a href="#contact" class="hover:text-prsc-red transition-colors">ติดต่อเรา</a>
-                </nav>
-
-                <div class="flex items-center gap-4">
-                    <div id="user-info" class="hidden items-center gap-3">
-                        <span id="user-email" class="text-xs text-slate-200 hidden sm:inline-block font-medium"></span>
-                        <button id="btn-logout" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-all shadow">
-                            <i class="fa-solid fa-right-from-bracket mr-1"></i> ออกจากระบบ
-                        </button>
-                    </div>
-
-                    <button id="btn-open-login" class="bg-prsc-red hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md flex items-center gap-2 font-heading">
-                        <i class="fa-solid fa-user"></i> <span>เข้าสู่ระบบ</span>
-                    </button>
-
-                    <button id="btn-hamburger" class="md:hidden text-slate-200 hover:text-white focus:outline-none text-xl p-1">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
+                <div class="flex items-center space-x-6">
+                    <a href="#home" class="font-medium theme-red border-b-2 theme-border-red pb-1">หน้าแรก</a>
+                    <a href="#help-me" class="font-medium text-slate-600 hover:text-red-700 transition">พี่สภาช่วยด้วย (SOS)</a>
+                    <a href="#student-voice" class="font-medium text-slate-600 hover:text-red-700 transition">Student Voice</a>
                 </div>
             </div>
         </div>
+    </nav>
 
-        <div id="mobile-menu" class="hidden md:hidden bg-blue-950 border-t border-slate-800 px-4 pt-2 pb-4 space-y-2 font-medium">
-            <a href="#hero" class="block py-2 text-sm hover:text-prsc-red">หน้าแรก</a>
-            <a href="#about" class="block py-2 text-sm hover:text-prsc-red">เกี่ยวกับสภาฯ</a>
-            <a href="#hive" class="block py-2 text-sm hover:text-prsc-red">ระบบร้องเรียน (The Hive)</a>
-            <a href="#contact" class="block py-2 text-sm hover:text-prsc-red">ติดต่อเรา</a>
-        </div>
-    </header>
-
-    <section id="hero" class="relative bg-gradient-to-br from-prsc-navy via-blue-900 to-prsc-red text-white py-24 sm:py-32 overflow-hidden">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-            <span class="bg-white/10 text-slate-200 text-xs sm:text-sm font-semibold px-4 py-1.5 rounded-full border border-white/20 uppercase tracking-wider inline-block mb-4 font-heading">
-                Voice of Phiriyalai Students
-            </span>
-            <h1 class="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6 leading-tight font-heading">
-                เสียงของคุณ มีพลังในการ<br class="hidden sm:inline"><span class="text-prsc-red bg-white px-2 rounded-md inline-block mt-1">ไล่รองส่งเสริมออกไป</span>
-            </h1>
-            <p class="max-w-2xl mx-auto text-slate-200 text-sm sm:text-base mb-8">
-                ร่วมขับเคลื่อนโรงเรียนพิริยาลัยจังหวัดแพร่ไปกับเรา แจ้งปัญหา เสนอแนะแนวทาง หรือร้องเรียนเรื่องราวต่างๆ ผ่านระบบ "The Hive" รังผึ้งแห่งปัญหาที่เราจะช่วยกันแก้ไข
-            </p>
-            <div class="flex justify-center gap-4">
-                <a href="#hive" class="bg-prsc-red hover:bg-red-700 text-white font-medium px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2 text-sm sm:text-base font-heading">
-                    <i class="fa-solid fa-bullhorn"></i> แจ้งเรื่องร้องเรียน
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="home">
+        
+        <div class="mb-10 bg-gradient-to-r from-red-800 to-red-950 rounded-2xl overflow-hidden shadow-lg text-white p-8 md:p-12 relative">
+            <div class="max-w-xl relative z-10">
+                <span class="bg-white text-red-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">ข่าวเด่นจากสภาฯ</span>
+                <h1 class="text-3xl md:text-4xl font-bold mt-4 mb-3" id="hero-title">กำลังดาวน์โหลดข่าวสาร...</h1>
+                <p class="text-red-100 text-base md:text-lg mb-6" id="hero-content">กำลังดึงข้อมูลอัปเดตล่าสุดจากระบบสภานักเรียน</p>
+                <a href="#help-me" class="bg-white text-red-800 font-bold px-6 py-3 rounded-xl shadow-md hover:bg-red-50 transition inline-flex items-center gap-2">
+                    <i class="fa-solid fa-circle-exclamation text-red-600"></i> แจ้งปัญหาด่วน (SOS)
                 </a>
             </div>
-        </div>
-    </section>
-
-    <section id="hive" class="py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-2xl sm:text-4xl font-bold text-prsc-navy font-heading mb-3">
-                <i class="fa-solid fa-hive text-prsc-red mr-2"></i>ระบบร้องเรียน "The Hive"
-            </h2>
-            <p class="text-slate-600 text-sm sm:text-base">
-                ทุกปัญหาของคุณคือเสียงสำคัญที่สภานักเรียนพร้อมรับฟังและประสานงานแก้ไข
-            </p>
+            <div class="absolute right-0 bottom-0 top-0 w-1/2 opacity-10 hidden md:flex items-center justify-center text-[15rem]">
+                <i class="fa-solid fa-bullhorn"></i>
+            </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-slate-100">
-            <form id="hive-form" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-semibold text-prsc-navy mb-2">หมวดหมู่เรื่องร้องเรียน <span class="text-prsc-red">*</span></label>
-                    <select id="complaint-category" required class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-prsc-red focus:border-prsc-red outline-none transition text-sm font-medium">
-                        <option value="">-- กรุณาเลือกหมวดหมู่ --</option>
-                        <option value="academic">ด้านวิชาการ / การเรียนการสอน</option>
-                        <option value="facilities">ด้านอาคารสถานที่ / สิ่งอำนวยความสะดวก</option>
-                        <option value="welfare">ด้านสวัสดิการ / โรงอาหาร</option>
-                        <option value="activity">ด้านกิจกรรมนักเรียน</option>
-                        <option value="other">เรื่องอื่นๆ</option>
-                    </select>
-                </div>
+        <div class="mb-12">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-2 h-8 theme-bg-red rounded"></div>
+                <h2 class="text-2xl font-bold">ข่าวสารประชาสัมพันธ์ล่าสุด</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="news-grid">
+                <p class="text-slate-400 col-span-3 text-center py-8">กำลังดึงการ์ดข่าวสาร...</p>
+            </div>
+        </div>
 
-                <div>
-                    <label class="block text-sm font-semibold text-prsc-navy mb-2">หัวข้อเรื่อง <span class="text-prsc-red">*</span></label>
-                    <input type="text" id="complaint-title" required placeholder="เช่น พัดลมในห้องปฏิบัติการคอมพิวเตอร์เสีย" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-prsc-red focus:border-prsc-red outline-none transition text-sm font-medium">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-prsc-navy mb-2">รายละเอียดเพิ่มเติม <span class="text-prsc-red">*</span></label>
-                    <textarea id="complaint-detail" rows="4" required placeholder="ระบุรายละเอียด วันที่ เวลา หรือสถานที่เกิดเหตุให้ชัดเจนเพื่อความรวดเร็วในการตรวจสอบ..." class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-prsc-red focus:border-prsc-red outline-none transition text-sm"></textarea>
-                </div>
-
-                <div class="flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <div class="flex items-center gap-3">
-                        <input type="checkbox" id="complaint-anonymous" class="w-5 h-5 text-prsc-red focus:ring-prsc-red rounded border-slate-300">
-                        <label for="complaint-anonymous" class="text-sm font-medium text-slate-700 cursor-pointer">
-                            ส่งแบบไม่ประสงค์ออกนาม (Anonymous)
-                        </label>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-2 space-y-12">
+                
+                <div id="help-me" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 scroll-mt-20">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-2 h-8 bg-red-600 rounded"></div>
+                        <div>
+                            <h2 class="text-xl font-bold">PRSC Help Me : พี่สภาช่วยด้วย 🚨</h2>
+                            <p class="text-sm text-slate-500">แจ้งเรื่องร้องเรียน/ปัญหา (ข้อมูลห้องเรียนและชื่อจะเห็นเฉพาะแอดมินสภาฯ เพื่อลงพื้นที่ไปช่วยแก้ไขให้ครับ)</p>
+                        </div>
                     </div>
-                    <span class="text-xs text-slate-400 hidden sm:inline">เพื่อความสบายใจในการแจ้งปัญหา</span>
+
+                    <form id="sosForm" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อ-นามสกุลของคุณ</label>
+                                <input type="text" id="sos_name" required placeholder="เช่น นายสมชาย ดีเด่น" class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none border-slate-200 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">ระดับชั้น</label>
+                                <select id="sos_class" required class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none border-slate-200 text-sm">
+                                    <option value="ม.1">ม.1</option>
+                                    <option value="ม.2">ม.2</option>
+                                    <option value="ม.3">ม.3</option>
+                                    <option value="ม.4">ม.4</option>
+                                    <option value="ม.5">ม.5</option>
+                                    <option value="ม.6">ม.6</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">ห้องเรียน</label>
+                                <input type="text" id="sos_room" required placeholder="เช่น 1 หรือ 12" class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none border-slate-200 text-sm">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">หมวดหมู่ปัญหา</label>
+                            <select id="sos_category" required class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none border-slate-200 text-sm">
+                                <option value="อาคารสถานที่">🏫 อาคารสถานที่ (พัดลมพัง, ไฟดับ, น้ำไม่ไหล)</option>
+                                <option value="วิชาการ">📚 วิชาการ (ปัญหาการเรียน, ตารางเรียน, ห้องสมุด)</option>
+                                <option value="สอบถามข้อมูล">❓ สอบถามข้อมูล (ถามกฎระเบียบ, สิทธิ์นักเรียน, กิจกรรม)</option>
+                                <option value="อื่นๆ">💡 อื่นๆ</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">หัวข้อปัญหาหลัก</label>
+                            <input type="text" id="sos_topic" required placeholder="สรุปสั้นๆ เช่น พัดลมหลังห้อง 432 ไม่หมุนครับ" class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none border-slate-200 text-sm">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">รายละเอียดเพิ่มเติม</label>
+                            <textarea id="sos_description" rows="3" placeholder="อธิบายข้อมูลเพิ่มเติมเพื่อความชัดเจน..." class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none border-slate-200 text-sm"></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full theme-bg-red text-white font-bold py-3 px-4 rounded-xl shadow hover:bg-red-800 transition">
+                            <i class="fa-solid fa-paper-plane mr-2"></i> ส่งเรื่องร้องเรียนให้สภาตรวจสอบ
+                        </button>
+                    </form>
                 </div>
 
-                <button type="submit" id="btn-submit-complaint" class="w-full bg-prsc-navy hover:bg-blue-900 text-white font-medium py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all text-sm sm:text-base flex justify-center items-center gap-2 font-heading">
-                    <i class="fa-solid fa-paper-plane text-prsc-red"></i> ส่งเรื่องเข้ารังผึ้ง
-                </button>
-            </form>
-        </div>
-    </section>
+                <div id="student-voice" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 scroll-mt-20">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-2 h-8 bg-amber-500 rounded"></div>
+                        <div>
+                            <h2 class="text-xl font-bold">Student Voice : ระดมสมองเสนอไอเดีย 💡</h2>
+                            <p class="text-sm text-slate-500">เสนอไอเดียกิจกรรมที่อยากให้จัดในโรงเรียน (เมื่อผ่านการตรวจสอบคัดกรองคำหยาบจากสภา เรื่องจะโผล่บนกระดานให้เพื่อนๆ กดโหวตทันที)</p>
+                        </div>
+                    </div>
 
-    <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-2xl max-w-md w-full mx-4 overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300" id="login-modal-card">
-            <div class="bg-prsc-navy text-white p-6 relative flex justify-between items-center">
-                <div>
-                    <h3 class="text-lg font-bold font-heading">เข้าสู่ระบบสภานักเรียน</h3>
-                    <p class="text-xs text-slate-300 mt-0.5">เฉพาะอีเมลองค์กร @phiriyalai.ac.th เท่านั้น</p>
+                    <form id="ideaForm" class="bg-slate-50 p-4 rounded-xl mb-6 border border-slate-200 space-y-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <input type="text" id="idea_title" required placeholder="หัวข้อ/ชื่อกิจกรรมที่อยากเสนอ..." class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none border-slate-200 text-sm bg-white">
+                            <input type="text" id="idea_desc" placeholder="คำอธิบายรายละเอียดสั้นๆ (ถ้ามี)..." class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none border-slate-200 text-sm bg-white">
+                        </div>
+                        <button type="submit" class="w-full bg-amber-500 text-white font-bold py-2 px-5 rounded-lg hover:bg-amber-600 transition text-sm">
+                            <i class="fa-solid fa-plus mr-1"></i> ส่งไอเดียเสนอสภานักเรียน
+                        </button>
+                    </form>
+
+                    <div class="space-y-3" id="ideas-list">
+                        <p class="text-slate-400 text-sm text-center py-4">กำลังโหลดไอเดียจากเพื่อนๆ...</p>
+                    </div>
                 </div>
-                <button id="btn-close-login" class="text-slate-400 hover:text-white text-lg focus:outline-none">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+
             </div>
 
-            <div class="p-6 space-y-4">
-                <button id="btn-google-login" class="w-full bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-3 text-sm">
-                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="w-5 h-5">
-                    เข้าสู่ระบบด้วย Google Account
-                </button>
-
-                <div class="relative flex py-2 items-center">
-                    <div class="flex-grow border-t border-slate-200"></div>
-                    <span class="flex-shrink mx-3 text-xs text-slate-400">หรือใช้อีเมลและรหัสผ่าน</span>
-                    <div class="flex-grow border-t border-slate-200"></div>
-                </div>
-
-                <form id="login-form" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">อีเมลโรงเรียน</label>
-                        <input type="email" id="login-email" required placeholder="student@phiriyalai.ac.th" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-prsc-navy outline-none text-sm font-medium">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">รหัสผ่าน</label>
-                        <input type="password" id="login-password" required placeholder="••••••••" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-prsc-navy outline-none text-sm font-medium">
+            <div class="space-y-6">
+                
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-2 h-6 bg-purple-600 rounded"></div>
+                        <h2 class="text-lg font-bold flex items-center gap-1.5">
+                            Live-Time Vote <span class="flex h-2 w-2 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span></span>
+                        </h2>
                     </div>
                     
-                    <div id="login-error" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-lg border border-red-200 font-medium"></div>
+                    <div id="poll-question" class="bg-purple-50 text-purple-900 text-xs font-semibold px-3 py-2 rounded-lg mb-4">
+                        กำลังโหลดหัวข้อโพลล์ประจำสัปดาห์นี้...
+                    </div>
 
-                    <button type="submit" class="w-full bg-prsc-red hover:bg-red-700 text-white font-medium py-2.5 rounded-xl shadow transition text-sm font-heading">
-                        เข้าสู่ระบบ
-                    </button>
-                </form>
+                    <div class="space-y-3" id="poll-container">
+                        <p class="text-slate-400 text-xs text-center py-4">กำลังโหลดตัวเลือกโหวต...</p>
+                    </div>
+                </div>
+
             </div>
+
         </div>
     </div>
 
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 max-w-xs w-full pointer-events-none"></div>
+    <footer class="bg-white border-t border-slate-200 mt-20 py-6 text-center text-sm text-slate-400">
+        <p>© 2026 สภานักเรียนโรงเรียนพิริยาลัยจังหวัดแพร่ | พัฒนาขึ้นด้วย PHP & Supabase</p>
+    </footer>
 
-    <script type="module" src="js/firebase-config.js"></script>
-    <script type="module" src="js/auth.js"></script>
-    <script type="module" src="js/app.js"></script>
+    <script>
+        // ดึงตัวแปรจาก PHP ฝั่ง Server มาใช้งานในสคริปต์หน้าบ้านแบบปลอดภัย
+        const SUPABASE_URL       = "<?php echo $supabase_url; ?>";
+        const SUPABASE_ANON_KEY  = "<?php echo $supabase_anon_key; ?>";
+
+        // เปิดสวิตช์ระบบเชื่อมต่อ Supabase
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // โหลดข้อมูลอัตโนมัติเมื่อเปิดหน้าเว็บ
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchPRPosts();
+            fetchActivePoll();
+            fetchStudentIdeas();
+        });
+
+        // 1. ฟังก์ชันดึงข่าวประชาสัมพันธ์ (PR Hub)
+        async function fetchPRPosts() {
+            const { data: posts, error } = await supabase
+                .from('pr_posts')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) { console.error(error); return; }
+
+            const heroPost = posts.find(p => p.is_hero === true) || posts[0];
+            if (heroPost) {
+                document.getElementById('hero-title').innerText = heroPost.title;
+                document.getElementById('hero-content').innerText = heroPost.content || '';
+            }
+
+            const newsGrid = document.getElementById('news-grid');
+            if (!posts || posts.length === 0) {
+                newsGrid.innerHTML = `<p class="text-slate-400 col-span-3 text-center py-4">ช่วงนี้สภายังไม่มีประกาศเพิ่มเติมครับ</p>`;
+                return;
+            }
+
+            newsGrid.innerHTML = posts.map(post => `
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-100 hover:shadow-md transition">
+                    <div class="h-48 bg-slate-100 flex items-center justify-center text-slate-440 overflow-hidden">
+                        ${post.image_url ? `<img src="${post.image_url}" class="w-full h-full object-cover">` : `<i class="fa-regular fa-image text-4xl text-slate-300"></i>`}
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-lg mb-2 line-clamp-1">${post.title}</h3>
+                        <p class="text-slate-500 text-sm line-clamp-3">${post.content || ''}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 2. ฟังก์ชันระบบ Live-Time Vote (ตามสภาสั่งเป็นรอบๆ)
+        let currentPollId = null;
+        async function fetchActivePoll() {
+            const { data: poll, error } = await supabase
+                .from('polls')
+                .select('*')
+                .eq('is_active', true)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (error || !poll) {
+                document.getElementById('poll-question').innerText = "📊 ช่วงนี้ไม่มีโพลกิจกรรมเปิดโหวตครับ";
+                document.getElementById('poll-container').innerHTML = "<p class='text-slate-400 text-xs text-center py-2'>โปรดติดตามหัวข้อจากสภาเร็วๆ นี้</p>";
+                return;
+            }
+
+            currentPollId = poll.id;
+            document.getElementById('poll-question').innerText = `📊 โพลสัปดาห์นี้: ${poll.question}`;
+
+            const { data: options } = await supabase.from('poll_options').select('*').eq('poll_id', poll.id);
+            if (!options) return;
+
+            const hasVoted = localStorage.getItem(`voted_poll_${poll.id}`);
+            if (hasVoted) {
+                renderPollResults(options);
+            } else {
+                renderPollForm(options);
+            }
+        }
+
+        function renderPollForm(options) {
+            document.getElementById('poll-container').innerHTML = options.map(opt => `
+                <button onclick="submitVote(${opt.id})" class="w-full text-left p-3 border border-slate-200 rounded-xl hover:bg-purple-50 hover:border-purple-300 transition block font-medium text-sm text-slate-700">
+                    📍 ${opt.option_text}
+                </button>
+            `).join('');
+        }
+
+        function renderPollResults(options) {
+            const totalVotes = options.reduce((sum, opt) => sum + (opt.votes_count || 0), 0) || 1;
+            document.getElementById('poll-container').innerHTML = `
+                <div class="space-y-3">
+                    ${options.map(opt => {
+                        const percent = Math.round((opt.votes_count || 0) / totalVotes * 100);
+                        return `
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+                                    <span>${opt.option_text}</span>
+                                    <span>${percent}% (${opt.votes_count} เสียง)</span>
+                                </div>
+                                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                    <div class="bg-purple-600 h-full rounded-full" style="width: ${percent}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                    <p class="text-[11px] text-emerald-600 font-semibold text-center mt-2"><i class="fa-solid fa-circle-check"></i> บันทึกสิทธิ์โหวตของคุณเรียบร้อย</p>
+                </div>
+            `;
+        }
+
+        async function submitVote(optionId) {
+            const { data: currentOpt } = await supabase.from('poll_options').select('votes_count').eq('id', optionId).single();
+            const newCount = (currentOpt?.votes_count || 0) + 1;
+
+            const { error } = await supabase.from('poll_options').update({ votes_count: newCount }).eq('id', optionId);
+            if (!error) {
+                localStorage.setItem(`voted_poll_${currentPollId}`, 'true');
+                fetchActivePoll();
+            }
+        }
+
+        // 3. ฟังก์ชันส่งคำร้องเรียน PRSC Help Me
+        document.getElementById('sosForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const ticketCode = `PRSC-${PhpRandom()}`;
+
+            const { error } = await supabase.from('sos_tickets').insert([{
+                ticket_code: ticketCode,
+                student_name: document.getElementById('sos_name').value,
+                student_class: document.getElementById('sos_class').value,
+                student_room: document.getElementById('sos_room').value,
+                category: document.getElementById('sos_category').value,
+                topic: document.getElementById('sos_topic').value,
+                description: document.getElementById('sos_description').value,
+                status: 'waiting_approval'
+            }]);
+
+            if (error) {
+                alert('ส่งข้อมูลขัดข้อง: ' + error.message);
+            } else {
+                alert(`🚨 ส่งเรื่องสำเร็จแล้ว! จดรหัสตั๋วของคุณเพื่อติดตามงาน: ${ticketCode}`);
+                this.reset();
+            }
+        });
+
+        // 4. ฟังก์ชันเสนอไอเดีย Student Voice
+        async function fetchStudentIdeas() {
+            const { data: ideas } = await supabase.from('student_ideas').select('*').not('status', 'eq', 'waiting_approval').order('created_at', { ascending: false });
+            const listDiv = document.getElementById('ideas-list');
+            
+            if (!ideas || ideas.length === 0) {
+                listDiv.innerHTML = `<p class="text-slate-400 text-sm text-center py-4">ยังไม่มีไอเดียเปิดโหวตในสัปดาห์นี้ มาร่วมเสนอไอเดียคนแรกสิ!</p>`;
+                return;
+            }
+
+            listDiv.innerHTML = ideas.map(idea => `
+                <div class="p-4 border border-slate-100 bg-white rounded-xl shadow-sm flex justify-between items-center gap-4">
+                    <div>
+                        <h3 class="font-bold text-slate-800">🎯 ${idea.title}</h3>
+                        <p class="text-xs text-slate-500 mt-1">${idea.description || ''}</p>
+                    </div>
+                    <button onclick="likeIdea(${idea.id}, ${idea.likes_count || 0}, this)" class="flex items-center gap-2 bg-rose-50 text-rose-600 font-bold px-4 py-2 rounded-xl border border-rose-100 hover:bg-rose-100 transition">
+                        <i class="fa-solid fa-heart"></i> <span>${idea.likes_count || 0}</span> สนใจ
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('ideaForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const { error } = await supabase.from('student_ideas').insert([{
+                title: document.getElementById('idea_title').value,
+                description: document.getElementById('idea_desc').value,
+                likes_count: 0,
+                status: 'waiting_approval'
+            }]);
+
+            if (!error) {
+                alert('💡 ส่งไอเดียกิจกรรมเรียบร้อย! รอพี่ๆ สภาอนุมัติเพื่อขึ้นกระดานคะแนนโหวตโชว์หน้าเว็บนะคร้าบ');
+                this.reset();
+            }
+        });
+
+        async function likeIdea(ideaId, currentLikes, btn) {
+            btn.disabled = true;
+            const { error } = await supabase.from('student_ideas').update({ likes_count: currentLikes + 1 }).eq('id', ideaId);
+            if (!error) {
+                btn.classList.remove('bg-rose-50', 'text-rose-600');
+                btn.classList.add('bg-rose-600', 'text-white');
+                btn.querySelector('span').innerText = currentLikes + 1;
+            }
+        }
+
+        function PhpRandom() { return Math.floor(1000 + Math.random() * 9000); }
+    </script>
 </body>
 </html>

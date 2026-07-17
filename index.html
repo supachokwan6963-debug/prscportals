@@ -184,7 +184,7 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <script>
-        // ดึงค่าจากตัวแปร PHP มาฝังใน JavaScript อัตโนมัติ ปลอดภัยและยืดหยุ่น
+        // เชื่อมต่อฐานข้อมูลจริงจากตัวแปร PHP ของโรงเรียนพิริยาลัยฯ
         const SUPABASE_URL = "<?php echo $supabase_url; ?>"; 
         const SUPABASE_ANON_KEY = "<?php echo $supabase_anon_key; ?>";
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -241,6 +241,7 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
                 document.getElementById('user-display-email').innerText = session.user.email;
                 document.getElementById('user-display-email').classList.remove('hidden');
 
+                // ค้นหาในตาราง profiles ของฐานข้อมูลจริง
                 const { data: profile } = await supabase
                     .from('profiles')
                     .select('has_consented')
@@ -251,6 +252,7 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
                     document.getElementById('consent-overlay').classList.remove('hidden');
                 } else {
                     document.getElementById('consent-overlay').classList.add('hidden');
+                    // เมื่อกดยินยอมแล้ว ให้เริ่มดึงข้อมูลระบบจริงทันที
                     fetchPRPosts();
                     fetchActivePoll();
                     fetchStudentIdeas();
@@ -284,51 +286,160 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
         }
 
         // ==================================================
-        // 📥 FUNCTIONS: DATA FETCHING & SUBMISSION
+        // 📥 FUNCTIONS: REAL DATA FETCHING & EMPTY STATE HANDLING
         // ==================================================
+        
+        // 1. ฟังก์ชันดึงข่าวประชาสัมพันธ์จากฐานข้อมูลจริง
         async function fetchPRPosts() {
-            document.getElementById('pr-posts-container').innerHTML = `
-                <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
-                    <span class="text-[10px] font-bold text-red-700 bg-red-50 px-2.5 py-1 rounded-full uppercase">ข่าวสารทั่วไป</span>
-                    <h3 class="font-bold text-sm mt-3 text-slate-900">ยินดีต้อนรับสู่ระบบสภานักเรียนเวอร์ชันใหม่</h3>
-                    <p class="text-xs text-slate-400 mt-1 line-clamp-2">เชื่อมต่อระบบหลังบ้านผ่านโปรเจกต์หลักของโรงเรียนสำเร็จแล้ว...</p>
-                </div>
-            `;
-        }
+            const container = document.getElementById('pr-posts-container');
+            
+            const { data: posts, error } = await supabase
+                .from('pr_posts')
+                .select('*')
+                .order('created_at', { ascending: false });
 
-        async function fetchActivePoll() {
-            document.getElementById('active-poll-card').innerHTML = `
-                <span class="bg-amber-500 text-slate-950 text-[9px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full">Live Vote</span>
-                <h3 class="font-bold text-base mt-4 leading-snug">อยากให้สภาฯ จัดกิจกรรมกีฬาสีในรูปแบบ e-Sports ไหม?</h3>
-                <div class="space-y-2 mt-5">
-                    <button class="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-2.5 px-4 rounded-xl text-xs text-left transition-all flex justify-between"><span>เห็นด้วย ลุยเลย</span> <span class="opacity-60">78%</span></button>
-                    <button class="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-2.5 px-4 rounded-xl text-xs text-left transition-all flex justify-between"><span>ไม่เห็นด้วย</span> <span class="opacity-60">22%</span></button>
-                </div>
-            `;
-        }
-
-        async function fetchStudentIdeas() {
-            document.getElementById('ideas-container').innerHTML = `
-                <div class="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-100 rounded-2xl">
-                    <div>
-                        <p class="text-xs font-semibold text-slate-800">อยากให้เพิ่มเวลาพักกลางวันอีก 15 นาที</p>
-                        <p class="text-[10px] text-slate-400 mt-0.5">สถานะ: รอการพิจารณาจากสภาฯ</p>
+            // ดักเคสว่างเปล่า (Empty State)
+            if (error || !posts || posts.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-white rounded-3xl p-10 border border-slate-100 text-center text-slate-400 shadow-sm">
+                        <i class="fa-solid fa-newspaper text-3xl mb-3 block opacity-30 text-slate-300"></i>
+                        <p class="text-xs font-medium">ยังไม่มีข่าวประชาสัมพันธ์ใหม่ในขณะนี้</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">โปรดติดตามอัปเดตจากสภานักเรียนเร็วๆ นี้</p>
                     </div>
-                    <button class="bg-white text-slate-700 border border-slate-200 hover:border-red-200 hover:text-red-700 font-bold text-xs py-1.5 px-3 rounded-lg shadow-sm transition-all flex items-center gap-1"><i class="fa-solid fa-caret-up"></i> 42</button>
-                </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '';
+            posts.forEach(post => {
+                container.innerHTML += `
+                    <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all">
+                        <span class="text-[10px] font-bold text-red-700 bg-red-50 px-2.5 py-1 rounded-full uppercase">${post.category || 'ข่าวประชาสัมพันธ์'}</span>
+                        <h3 class="font-bold text-sm mt-3 text-slate-900">${post.title}</h3>
+                        <p class="text-xs text-slate-500 mt-1 line-clamp-3 leading-relaxed">${post.content}</p>
+                        <div class="text-[10px] text-slate-400 mt-4 flex items-center gap-1">
+                            <i class="fa-regular fa-calendar"></i> ${new Date(post.created_at).toLocaleDateString('th-TH')}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // 2. ฟังก์ชันดึงโพลเปิดโหวตแบบ Realtime
+        async function fetchActivePoll() {
+            const card = document.getElementById('active-poll-card');
+            
+            const { data: poll, error } = await supabase
+                .from('polls')
+                .select('*, poll_options(*)')
+                .eq('is_active', true)
+                .order('created_at', { ascending: false })
+                .maybeSingle();
+
+            // ดักเคสว่างเปล่า (Empty State)
+            if (error || !poll) {
+                card.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        <i class="fa-solid fa-square-poll-vertical text-3xl mb-3 block opacity-30 text-slate-500"></i>
+                        <p class="text-xs font-semibold text-slate-300">ขณะนี้ยังไม่มีหัวข้อโพลเปิดโหวต</p>
+                        <p class="text-[10px] text-slate-500 mt-0.5">เมื่อสภาฯ ตั้งหัวข้อใหม่ จะแสดงขึ้นที่นี่ทันที</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let optionsHTML = '';
+            poll.poll_options.forEach(opt => {
+                optionsHTML += `
+                    <button onclick="votePoll('${opt.id}')" class="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-2.5 px-4 rounded-xl text-xs text-left transition-all flex justify-between group active:scale-[0.98]">
+                        <span>${opt.option_text}</span> 
+                        <span class="opacity-60 group-hover:opacity-100">${opt.votes_count || 0} โหวต</span>
+                    </button>
+                `;
+            });
+
+            card.innerHTML = `
+                <span class="bg-amber-500 text-slate-950 text-[9px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full shadow-sm">Live Vote</span>
+                <h3 class="font-bold text-base mt-4 leading-snug">${poll.question}</h3>
+                <div class="space-y-2 mt-5">${optionsHTML}</div>
             `;
         }
 
+        // 3. ฟังก์ชันดึงไอเดียกิจกรรม (Student Voice)
+        async function fetchStudentIdeas() {
+            const container = document.getElementById('ideas-container');
+            
+            const { data: ideas, error } = await supabase
+                .from('student_ideas')
+                .select('*')
+                .eq('is_approved', true)
+                .order('votes', { ascending: false });
+
+            // ดักเคสว่างเปล่า (Empty State)
+            if (error || !ideas || ideas.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-slate-50 rounded-2xl p-8 border border-dashed border-slate-200 text-center text-slate-400">
+                        <i class="fa-solid fa-lightbulb text-2xl mb-2 block opacity-30 text-slate-300"></i>
+                        <p class="text-xs font-medium text-slate-600">ยังไม่มีไอเดียของเพื่อนๆ แสดงในขณะนี้</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">ร่วมส่งไอเดียแรกของคุณผ่านฟอร์มด้านล่างได้เลย!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '';
+            ideas.forEach(idea => {
+                container.innerHTML += `
+                    <div class="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-slate-100/50 transition-all">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-800">${idea.title}</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">เสนอเมื่อ: ${new Date(idea.created_at).toLocaleDateString('th-TH')}</p>
+                        </div>
+                        <button onclick="upvoteIdea('${idea.id}')" class="bg-white text-slate-700 border border-slate-200 hover:border-red-200 hover:text-red-700 font-bold text-xs py-1.5 px-3 rounded-lg shadow-sm transition-all flex items-center gap-1 active:scale-95">
+                            <i class="fa-solid fa-caret-up"></i> ${idea.votes || 0}
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        // 4. ฟังก์ชันส่งเรื่องร้องเรียน SOS จริงเข้าตารางฐานข้อมูล
         async function submitSOS(e) {
             e.preventDefault();
-            alert('ส่งข้อมูลเคส SOS เรียบร้อยแล้ว ทีมสภานักเรียนจะเร่งเข้าตรวจสอบครับ!');
+            const category = document.getElementById('sos_category').value;
+            const detail = document.getElementById('sos_detail').value;
+
+            const { error } = await supabase
+                .from('sos_tickets')
+                .insert([{ category: category, detail: detail, status: 'pending' }]);
+
+            if (error) {
+                alert('ไม่สามารถส่งเรื่องได้ในขณะนี้: ' + error.message);
+            } else {
+                alert('🚀 ส่งข้อมูลเคส SOS เรียบร้อยแล้ว ทีมสภานักเรียนจะเร่งเข้าตรวจสอบครับ!');
+                document.getElementById('sos_detail').value = ''; 
+            }
         }
 
+        // 5. ฟังก์ชันส่งไอเดียกิจกรรมใหม่จริงเข้าตารางฐานข้อมูล
         async function submitIdea(e) {
             e.preventDefault();
-            alert('เสนอไอเดียเรียบร้อยแล้ว รอทีมสภาตรวจสอบและอนุมัติขึ้นแสดงผลหน้าเว็บครับ!');
+            const title = document.getElementById('idea_title').value;
+
+            const { error } = await supabase
+                .from('student_ideas')
+                .insert([{ title: title, votes: 1, is_approved: false }]); 
+
+            if (error) {
+                alert('ไม่สามารถส่งไอเดียได้ในขณะนี้: ' + error.message);
+            } else {
+                alert('💡 เสนอไอเดียเรียบร้อยแล้ว! ไอเดียจะแสดงบนหน้าเว็บหลังจากพี่ๆ สภาฯ ตรวจสอบและอนุมัตินะครับ');
+                document.getElementById('idea_title').value = ''; 
+                fetchStudentIdeas(); 
+            }
         }
 
+        // ผูกเข้ากับระบบดักจับสถานะเซสชันการล็อกอิน
         supabase.auth.onAuthStateChange((event, session) => {
             checkUserSessionAndConsent();
         });

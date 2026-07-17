@@ -21,43 +21,26 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen pb-12">
 
     <div id="auth-overlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xl z-[100] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8 border border-slate-100">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-8 border border-slate-100">
             <div class="text-center mb-6">
                 <div class="w-12 h-12 rounded-2xl bg-red-800 text-white flex items-center justify-center text-xl mx-auto shadow-lg shadow-red-900/20 mb-3">
-                    <i class="fa-solid fa-graduation-cap"></i>
+                    <i class="fa-solid fa-id-card"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-slate-900">PRSC PORTALS</h2>
-                <p class="text-xs text-slate-400 mt-1">กรุณาเข้าสู่ระบบเพื่อเข้าใช้งาน (รหัสนักเรียนใช้รหัสผ่านเริ่มต้น: 12345)</p>
+                <h2 class="text-2xl font-bold text-slate-900">PRSC PORTAL</h2>
+                <p class="text-xs text-slate-400 mt-1">ระบบฐานข้อมูลสภานักเรียน</p>
             </div>
 
-            <div class="flex bg-slate-100 p-1.5 rounded-xl mb-6">
-                <button onclick="switchAuthTab('google')" id="tab-google" class="flex-1 text-xs font-semibold py-2.5 rounded-lg transition-all bg-white text-slate-800 shadow-sm">
-                    <i class="fa-brands fa-google mr-1"></i> เมลโรงเรียน (Sync)
-                </button>
-                <button onclick="switchAuthTab('id')" id="tab-id" class="flex-1 text-xs font-semibold py-2.5 rounded-lg transition-all text-slate-500 hover:text-slate-800">
-                    <i class="fa-solid fa-id-card mr-1"></i> รหัสนักเรียน
-                </button>
-            </div>
-
-            <div id="form-google" class="space-y-4">
-                <p class="text-xs text-slate-500 text-center leading-relaxed">หากคุณมีอีเมลโรงเรียนที่ลงท้ายด้วย <span class="font-semibold text-red-800">@piriyalai.ac.th</span> สามารถกดปุ่มด้านล่างเพื่อเชื่อมต่อ Google ได้ทันที</p>
-                <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-slate-50 text-slate-700 font-semibold py-3 px-4 border border-slate-200 rounded-xl shadow-sm transition-all text-sm flex items-center justify-center gap-3 active:scale-95">
-                    <img src="https://www.google.com/favicon.ico" class="w-4 h-4" alt="Google">
-                    ลงชื่อเข้าใช้ด้วยบัญชี Google โรงเรียน
-                </button>
-            </div>
-
-            <form id="form-id" class="space-y-4 hidden" onsubmit="loginWithStudentID(event)">
+            <form id="form-id" class="space-y-4" onsubmit="loginWithStudentID(event)">
                 <div>
                     <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">รหัสนักเรียน 5 หลัก</label>
-                    <input type="text" id="login_student_id" required placeholder="เช่น 55432" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-red-500/10 focus:border-red-600 outline-none transition-all text-sm">
+                    <input type="text" id="login_student_id" required placeholder="กรอกรหัสนักเรียน เช่น 55432" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-red-500/10 focus:border-red-600 outline-none transition-all text-sm">
                 </div>
                 <div>
                     <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">รหัสผ่าน</label>
-                    <input type="password" id="login_id_password" required placeholder="••••••••" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-red-500/10 focus:border-red-600 outline-none transition-all text-sm">
+                    <input type="password" id="login_id_password" required placeholder="รหัสผ่านเริ่มต้นคือ 12345" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-red-500/10 focus:border-red-600 outline-none transition-all text-sm">
                 </div>
-                <button type="submit" class="w-full bg-slate-900 text-white font-semibold py-3 px-4 rounded-xl shadow-lg hover:bg-slate-800 transition-all text-sm">
-                    เข้าสู่ระบบด้วยรหัสนักเรียน
+                <button type="submit" class="w-full bg-red-800 hover:bg-red-900 text-white font-semibold py-3 px-4 rounded-xl shadow-lg transition-all text-sm active:scale-[0.98]">
+                    เข้าสู่ระบบ
                 </button>
             </form>
         </div>
@@ -70,21 +53,21 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
                     <i class="fa-solid fa-user-shield"></i>
                 </div>
                 <h2 class="text-xl font-bold text-slate-900">ข้อตกลงและความยินยอมใช้งานข้อมูล</h2>
-                <p class="text-xs text-slate-400 mt-1">โปรดอ่านและกดยินยอมเพื่อร่วมพัฒนาสภานักเรียน</p>
+                <p class="text-xs text-slate-400 mt-1">โปรดอ่านและกดยินยอมเพื่อเข้าสู่ระบบ</p>
             </div>
 
             <div class="overflow-y-auto bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs text-slate-600 space-y-3 leading-relaxed mb-6 flex-1">
-                <p class="font-bold text-slate-800">วัตถุประสงค์ในการจัดเก็บข้อมูล:</p>
-                <p>1. ข้อมูลในระบบ "พี่สภาช่วยด้วย (SOS)" จะถูกเก็บเป็นความลับสูงสุด เพื่อใช้ในการประสานงานแก้ไขปัญหาจริงในโรงเรียน</p>
-                <p>2. ข้อมูลโหวตในส่วนของ "Student Voice" จะถูกนำไปประมวลผลทางสถิติแบบไม่ระบุตัวตน เพื่อประกอบการตัดสินใจของสภานักเรียนโรงเรียนพิริยาลัยจังหวัดแพร่</p>
+                <p class="font-bold text-slate-800">วัตถุประสงค์ในการใช้งานระบบ:</p>
+                <p>1. ระบบ "พี่สภาช่วยด้วย (SOS)" ข้อมูลปัญหาจะถูกส่งหาทางสภานักเรียนโดยตรงเพื่อเร่งแก้ไข และจะปิดบังข้อมูลผู้แจ้งเพื่อความปลอดภัย</p>
+                <p>2. ระบบ "Student Voice" จะเปิดให้คุณเสนอไอเดียและร่วมโหวตได้อย่างอิสระ</p>
             </div>
 
             <div class="space-y-2.5 shrink-0">
                 <button onclick="acceptConsent()" class="w-full bg-gradient-to-r from-red-800 to-red-950 text-white font-semibold py-3.5 px-4 rounded-xl shadow-lg hover:opacity-95 transition-all text-sm">
-                    ฉันอ่านเข้าใจและยินยอมให้ใช้ข้อมูล
+                    รับทราบและยินยอมเข้าใช้งาน
                 </button>
                 <button onclick="logout()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium py-2.5 px-4 rounded-xl transition-all text-xs text-center block">
-                    ปฏิเสธและออกจากระบบ
+                    ออกจากระบบ
                 </button>
             </div>
         </div>
@@ -97,7 +80,7 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
                 <span class="font-bold tracking-tight text-slate-900">PRSC PORTAL</span>
             </div>
             <div class="flex items-center gap-4">
-                <span id="user-display-email" class="text-xs text-slate-500 font-medium hidden md:inline"></span>
+                <span id="user-display-id" class="text-xs text-slate-500 font-medium hidden md:inline"></span>
                 <button onclick="logout()" class="text-xs bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-700 px-3 py-2 rounded-xl font-semibold transition-all">
                     ออกจากระบบ
                 </button>
@@ -128,4 +111,234 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
                     <h2 class="text-xl font-bold tracking-tight text-slate-900 mb-2 flex items-center gap-2">
                         <span class="w-2 h-5 bg-amber-500 rounded-full"></span> Student Voice เสนอและโหวต
                     </h2>
-                    <p class="text-xs text-slate-400 mb-6">ร่วมโหวตข้อเสนอของเพื่อนๆ หรือสร้างหัวข้อไอเดียใหม่</
+                    <p class="text-xs text-slate-400 mb-6">ร่วมโหวตข้อเสนอของเพื่อนๆ หรือสร้างหัวข้อไอเดียใหม่</p>
+                    <div id="ideas-container" class="space-y-4 mb-6"></div>
+
+                    <form onsubmit="submitIdea(event)" class="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-3">
+                        <div class="flex gap-2">
+                            <input type="text" id="idea_title" required placeholder="เช่น อยากให้มีตู้กดน้ำจุดอาคาร 3..." class="flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs outline-none focus:border-red-600">
+                            <button type="submit" class="bg-slate-900 text-white font-semibold text-xs px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-all">ส่งไอเดีย</button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+
+            <div class="space-y-8">
+                <section id="active-poll-card" class="bg-gradient-to-b from-slate-900 to-slate-950 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden"></section>
+
+                <section class="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm">
+                    <h2 class="font-bold text-slate-900 mb-4">PRSC Help Me! (พี่สภาช่วยด้วย)</h2>
+                    <form onsubmit="submitSOS(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">หมวดหมู่ปัญหา</label>
+                            <select id="sos_category" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-red-600">
+                                <option value="สถานที่/อาคาร">อาคารสถานที่ / ตู้กดน้ำ / ห้องน้ำ</option>
+                                <option value="การเรียน/วิชาการ">การเรียน / วิชาการ</option>
+                                <option value="อื่นๆ">อื่นๆ</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">รายละเอียดปัญหา</label>
+                            <textarea id="sos_detail" rows="3" required placeholder="ระบุรายละเอียดปัญหาที่พบ..." class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-red-600 resize-none"></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-red-800 text-white font-semibold py-2.5 rounded-xl text-xs shadow-md hover:bg-red-900 transition-all">
+                            ส่งเรื่องร้องเรียน (ไม่ระบุชื่อ)
+                        </button>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        const SUPABASE_URL = "<?php echo $supabase_url; ?>"; 
+        const SUPABASE_ANON_KEY = "<?php echo $supabase_anon_key; ?>";
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ฟังก์ชันล็อกอินด้วยรหัสนักเรียน (แปลงรหัสผ่านเป็นเมลดัมมี่เพื่อคุยกับ Supabase)
+        async function loginWithStudentID(e) {
+            e.preventDefault();
+            const studentID = document.getElementById('login_student_id').value;
+            const password = document.getElementById('login_id_password').value;
+            const dummyEmail = `${studentID}@piriyalai.net`; 
+
+            const { data, error } = await supabase.auth.signInWithPassword({ email: dummyEmail, password: password });
+            
+            if (error) {
+                alert('ไม่พบรหัสนักเรียนนี้ หรือรหัสผ่านไม่ถูกต้องครับ');
+            } else {
+                // เคลียร์ค่าฟอร์มและตรวจสอบเซสชันเพื่อเปิดระบบทันที
+                document.getElementById('login_student_id').value = '';
+                document.getElementById('login_id_password').value = '';
+                checkUserSessionAndConsent();
+            }
+        }
+
+        // ตรวจสอบเซสชันการล็อกอินและสถานะ PDPA
+        async function checkUserSessionAndConsent() {
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (session) {
+                // ดึงรหัสนักเรียนจากอีเมลมาแสดง เช่น 55432@piriyalai.net -> 55432
+                const studentIdShow = session.user.email.split('@')[0];
+                document.getElementById('user-display-id').innerText = `นักเรียนรหัส: ${studentIdShow}`;
+                document.getElementById('user-display-id').classList.remove('hidden');
+                
+                // ซ่อนหน้าต่างล็อกอินออกไปทันที!
+                document.getElementById('auth-overlay').classList.add('hidden');
+
+                // ตรวจสิทธิ์การยอมรับข้อมูล PDPA
+                const { data: profile } = await supabase
+                    .from('student_profiles')
+                    .select('has_consented')
+                    .eq('id', session.user.id)
+                    .maybeSingle();
+
+                if (!profile || !profile.has_consented) {
+                    document.getElementById('consent-overlay').classList.remove('hidden');
+                } else {
+                    document.getElementById('consent-overlay').classList.add('hidden');
+                    // โหลดข้อมูลจริงขึ้นมาทำงาน
+                    fetchPRPosts();
+                    fetchActivePoll();
+                    fetchStudentIdeas();
+                }
+            } else {
+                // หากไม่มี Session ให้กางหน้าต่างล็อกอินขึ้นมาบังไว้
+                document.getElementById('auth-overlay').classList.remove('hidden');
+                document.getElementById('consent-overlay').classList.add('hidden');
+            }
+        }
+
+        async function acceptConsent() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
+
+            const { error } = await supabase
+                .from('student_profiles')
+                .upsert({ id: session.user.id, has_consented: true, updated_at: new Date() });
+
+            if (!error) {
+                document.getElementById('consent-overlay').classList.add('hidden');
+                window.location.reload();
+            } else {
+                alert('เกิดข้อผิดพลาด: ' + error.message);
+            }
+        }
+
+        async function logout() {
+            await supabase.auth.signOut();
+            window.location.reload();
+        }
+
+        // ==================================================
+        // 📥 FUNCTIONS: DATA FETCHING
+        // ==================================================
+        async function fetchPRPosts() {
+            const container = document.getElementById('pr-posts-container');
+            const { data: posts, error } = await supabase.from('pr_posts').select('*').order('created_at', { ascending: false });
+
+            if (error || !posts || posts.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-white rounded-3xl p-10 border border-slate-100 text-center text-slate-400">
+                        <i class="fa-solid fa-newspaper text-3xl mb-2 opacity-30"></i>
+                        <p class="text-xs">ยังไม่มีข่าวประชาสัมพันธ์ในขณะนี้</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            posts.forEach(post => {
+                container.innerHTML += `
+                    <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
+                        <span class="text-[10px] font-bold text-red-700 bg-red-50 px-2.5 py-1 rounded-full uppercase">${post.category || 'ข่าวทั่วไป'}</span>
+                        <h3 class="font-bold text-sm mt-3 text-slate-900">${post.title}</h3>
+                        <p class="text-xs text-slate-500 mt-1 line-clamp-3">${post.content}</p>
+                    </div>`;
+            });
+        }
+
+        async function fetchActivePoll() {
+            const card = document.getElementById('active-poll-card');
+            const { data: poll, error } = await supabase.from('polls').select('*, poll_options(*)').eq('is_active', true).maybeSingle();
+
+            if (error || !poll) {
+                card.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        <i class="fa-solid fa-square-poll-vertical text-3xl mb-2 opacity-30"></i>
+                        <p class="text-xs">ขณะนี้ยังไม่มีหัวข้อโพลเปิดโหวต</p>
+                    </div>`;
+                return;
+            }
+
+            let optionsHTML = '';
+            poll.poll_options.forEach(opt => {
+                optionsHTML += `
+                    <button class="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-2.5 px-4 rounded-xl text-xs text-left flex justify-between">
+                        <span>${opt.option_text}</span> <span class="opacity-60">${opt.votes_count || 0} โหวต</span>
+                    </button>`;
+            });
+
+            card.innerHTML = `
+                <span class="bg-amber-500 text-slate-950 text-[9px] font-bold px-2.5 py-1 rounded-full">Live Vote</span>
+                <h3 class="font-bold text-base mt-4">${poll.question}</h3>
+                <div class="space-y-2 mt-5">${optionsHTML}</div>`;
+        }
+
+        async function fetchStudentIdeas() {
+            const container = document.getElementById('ideas-container');
+            const { data: ideas, error } = await supabase.from('student_ideas').select('*').eq('is_approved', true).order('votes', { ascending: false });
+
+            if (error || !ideas || ideas.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-slate-50 rounded-2xl p-8 border border-dashed border-slate-200 text-center text-slate-400">
+                        <i class="fa-solid fa-lightbulb text-2xl mb-2 opacity-30"></i>
+                        <p class="text-xs">ยังไม่มีไอเดียเสนอแนะในขณะนี้ ร่วมส่งไอเดียแรกของคุณด้านล่างได้เลยครับ</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            ideas.forEach(idea => {
+                container.innerHTML += `
+                    <div class="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-100 rounded-2xl">
+                        <p class="text-xs font-semibold text-slate-800">${idea.title}</p>
+                        <button class="bg-white text-slate-700 border border-slate-200 text-xs py-1.5 px-3 rounded-lg flex items-center gap-1">
+                            <i class="fa-solid fa-caret-up"></i> ${idea.votes || 0}
+                        </button>
+                    </div>`;
+            });
+        }
+
+        async function submitSOS(e) {
+            e.preventDefault();
+            const category = document.getElementById('sos_category').value;
+            const detail = document.getElementById('sos_detail').value;
+
+            const { error } = await supabase.from('sos_tickets').insert([{ category, detail, status: 'pending' }]);
+            if (!error) {
+                alert('🚀 ส่งเรื่องร้องเรียนเรียบร้อยแล้ว ทีมสภาฯ จะเข้าตรวจสอบให้เร็วที่สุดครับ!');
+                document.getElementById('sos_detail').value = '';
+            }
+        }
+
+        async function submitIdea(e) {
+            e.preventDefault();
+            const title = document.getElementById('idea_title').value;
+
+            const { error } = await supabase.from('student_ideas').insert([{ title, votes: 1, is_approved: false }]);
+            if (!error) {
+                alert('💡 เสนอไอเดียสำเร็จแล้ว! ไอเดียจะแสดงบนเว็บหลังจากผ่านการตรวจสอบความเหมาะสมจากพี่ๆ สภาฯ ครับ');
+                document.getElementById('idea_title').value = '';
+            }
+        }
+
+        // ตรวจสอบสถานะทันทีเมื่อเข้าหน้าเว็บ
+        supabase.auth.onAuthStateChange((event, session) => {
+            checkUserSessionAndConsent();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "bulk-create-students",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bulk-create Supabase Auth accounts for every student already in the students table",
+  "main": "bulk_create_students.js",
+  "scripts": {
+    "start": "node bulk_create_students.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "dotenv": "^16.4.5"
+  }
+}

@@ -151,11 +151,18 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+
     <script>
         const SUPABASE_URL = "<?php echo $supabase_url; ?>"; 
         const SUPABASE_ANON_KEY = "<?php echo $supabase_anon_key; ?>";
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // FIX: the client is renamed to `supabaseClient` so it no longer
+        // shadows the global `supabase` object injected by the CDN script.
+        // (Previously: `const supabase = supabase.createClient(...)` threw
+        // "Cannot access 'supabase' before initialization" and silently
+        // aborted this entire script block, so none of the functions below
+        // were ever defined.)
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // ฟังก์ชันล็อกอินด้วยรหัสนักเรียน (แปลงรหัสผ่านเป็นเมลดัมมี่เพื่อคุยกับ Supabase)
         async function loginWithStudentID(e) {
@@ -164,7 +171,7 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
             const password = document.getElementById('login_id_password').value;
             const dummyEmail = `${studentID}@piriyalai.net`; 
 
-            const { data, error } = await supabase.auth.signInWithPassword({ email: dummyEmail, password: password });
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email: dummyEmail, password: password });
             
             if (error) {
                 alert('ไม่พบรหัสนักเรียนนี้ หรือรหัสผ่านไม่ถูกต้องครับ');
@@ -178,7 +185,7 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
         // ตรวจสอบเซสชันการล็อกอินและสถานะ PDPA
         async function checkUserSessionAndConsent() {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession();
 
             if (session) {
                 // ดึงรหัสนักเรียนจากอีเมลมาแสดง เช่น 55432@piriyalai.net -> 55432
@@ -190,7 +197,7 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
                 document.getElementById('auth-overlay').classList.add('hidden');
 
                 // ตรวจสิทธิ์การยอมรับข้อมูล PDPA
-                const { data: profile } = await supabase
+                const { data: profile } = await supabaseClient
                     .from('student_profiles')
                     .select('has_consented')
                     .eq('id', session.user.id)
@@ -213,10 +220,10 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
         }
 
         async function acceptConsent() {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session) return;
 
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('student_profiles')
                 .upsert({ id: session.user.id, has_consented: true, updated_at: new Date() });
 
@@ -229,7 +236,7 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
         }
 
         async function logout() {
-            await supabase.auth.signOut();
+            await supabaseClient.auth.signOut();
             window.location.reload();
         }
 
@@ -238,7 +245,7 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
         // ==================================================
         async function fetchPRPosts() {
             const container = document.getElementById('pr-posts-container');
-            const { data: posts, error } = await supabase.from('pr_posts').select('*').order('created_at', { ascending: false });
+            const { data: posts, error } = await supabaseClient.from('pr_posts').select('*').order('created_at', { ascending: false });
 
             if (error || !posts || posts.length === 0) {
                 container.innerHTML = `
@@ -262,7 +269,7 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
         async function fetchActivePoll() {
             const card = document.getElementById('active-poll-card');
-            const { data: poll, error } = await supabase.from('polls').select('*, poll_options(*)').eq('is_active', true).maybeSingle();
+            const { data: poll, error } = await supabaseClient.from('polls').select('*, poll_options(*)').eq('is_active', true).maybeSingle();
 
             if (error || !poll) {
                 card.innerHTML = `
@@ -289,7 +296,7 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
         async function fetchStudentIdeas() {
             const container = document.getElementById('ideas-container');
-            const { data: ideas, error } = await supabase.from('student_ideas').select('*').eq('is_approved', true).order('votes', { ascending: false });
+            const { data: ideas, error } = await supabaseClient.from('student_ideas').select('*').eq('is_approved', true).order('votes', { ascending: false });
 
             if (error || !ideas || ideas.length === 0) {
                 container.innerHTML = `
@@ -317,7 +324,7 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
             const category = document.getElementById('sos_category').value;
             const detail = document.getElementById('sos_detail').value;
 
-            const { error } = await supabase.from('sos_tickets').insert([{ category, detail, status: 'pending' }]);
+            const { error } = await supabaseClient.from('sos_tickets').insert([{ category, detail, status: 'pending' }]);
             if (!error) {
                 alert('🚀 ส่งเรื่องร้องเรียนเรียบร้อยแล้ว ทีมสภาฯ จะเข้าตรวจสอบให้เร็วที่สุดครับ!');
                 document.getElementById('sos_detail').value = '';
@@ -328,7 +335,7 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
             e.preventDefault();
             const title = document.getElementById('idea_title').value;
 
-            const { error } = await supabase.from('student_ideas').insert([{ title, votes: 1, is_approved: false }]);
+            const { error } = await supabaseClient.from('student_ideas').insert([{ title, votes: 1, is_approved: false }]);
             if (!error) {
                 alert('💡 เสนอไอเดียสำเร็จแล้ว! ไอเดียจะแสดงบนเว็บหลังจากผ่านการตรวจสอบความเหมาะสมจากพี่ๆ สภาฯ ครับ');
                 document.getElementById('idea_title').value = '';
@@ -336,7 +343,7 @@ $supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
         }
 
         // ตรวจสอบสถานะทันทีเมื่อเข้าหน้าเว็บ
-        supabase.auth.onAuthStateChange((event, session) => {
+        supabaseClient.auth.onAuthStateChange((event, session) => {
             checkUserSessionAndConsent();
         });
     </script>

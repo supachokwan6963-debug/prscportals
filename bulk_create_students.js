@@ -13,7 +13,7 @@
  *   1. npm install
  *   2. Create a file named .env next to this script:
  *        SUPABASE_URL=https://dkuyxaujvhqanloqcgbh.supabase.co
- *        SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+ *        SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdXl4YXVqdmhxYW5sb3FjZ2JoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDI4ODc5NywiZXhwIjoyMDk5ODY0Nzk3fQ.JelAnSnhzoLRIUolO2rKLHWn8YNjUBOYPU4thrw-670
  *        DEFAULT_PASSWORD=12345
  *      NEVER commit .env or the service role key anywhere public.
  *   3. Run:  node bulk_create_students.js

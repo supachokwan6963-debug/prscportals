@@ -11,192 +11,157 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Inter', 'Sarabun', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Inter', 'Sarabun', sans-serif; }
 
-        /* ===== Lively Animations ===== */
+        /* ===== ปรับ Entrance ให้ Lively และสมูทขึ้นเมื่อเปิดหน้าเว็บ ===== */
         .enter-item {
             opacity: 0;
-            animation: riseIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: riseIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         @keyframes riseIn {
-            from { opacity: 0; transform: translateY(16px); }
+            from { opacity: 0; transform: translateY(20px); }
             to   { opacity: 1; transform: translateY(0); }
         }
 
+        /* ===== เอฟเฟกต์ยกกล่องแบบนุ่มนวล (Smooth Transition) ===== */
         .card-lift {
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .card-lift:hover {
             transform: translateY(-4px);
-            box-shadow: 0 12px 24px -10px rgba(99, 102, 241, 0.15);
-        }
-
-        /* Gradient Text */
-        .text-gradient {
-            background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* Custom File Input Upload Button */
-        .upload-btn-wrapper {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-        }
-        .upload-btn-wrapper input[type=file] {
-            font-size: 100px;
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            cursor: pointer;
+            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.08);
         }
     </style>
 </head>
-<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
 
-    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm transition-all duration-300">
-        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-            <a href="#" class="flex items-center gap-3 group">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-                    <i class="fa-solid fa-graduation-cap text-lg"></i>
-                </div>
-                <div>
-                    <span class="font-bold text-lg tracking-tight text-slate-900 block leading-none">PRSC <span class="text-gradient">Portal</span></span>
-                    <span class="text-[10px] text-slate-500 font-medium">โรงเรียนพิริยาลัยจังหวัดแพร่</span>
-                </div>
-            </a>
-
-            <div id="nav-auth-section" class="flex items-center gap-3">
-                <button onclick="loginWithGoogle()" id="btn-login-nav" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-medium px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all flex items-center gap-2 cursor-pointer">
-                    <i class="fa-brands fa-google"></i>
+    <nav class="bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 shadow-xs">
+        <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+            <div class="flex items-center gap-2 group cursor-pointer">
+                <span class="text-xl group-hover:scale-110 transition-transform">🎓</span>
+                <span class="font-bold text-sm tracking-tight text-slate-900">PRSC <span class="text-indigo-600">Portal</span></span>
+            </div>
+            
+            <div id="auth-nav-container" class="flex items-center gap-3">
+                <button id="btn-login" onclick="loginWithGoogle()" class="bg-gradient-to-r from-slate-900 to-indigo-950 hover:from-indigo-600 hover:to-purple-600 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-md hover:shadow-indigo-500/20 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer flex items-center gap-1.5">
+                    <i class="fa-brands fa-google text-[10px]"></i>
                     <span>เข้าสู่ระบบด้วย Google</span>
                 </button>
 
-                <div id="nav-user-profile" class="hidden items-center gap-3 bg-slate-100/80 hover:bg-slate-100 p-1.5 pl-3 rounded-full border border-slate-200/60 transition-all">
+                <div id="user-profile-nav" class="hidden items-center gap-3">
                     <div class="text-right hidden sm:block">
-                        <p class="text-[10px] text-slate-500 leading-none">ยินดีต้อนรับ,</p>
-                        <p id="nav-student-name" class="text-xs font-semibold text-slate-800 leading-tight">กำลังโหลด...</p>
+                        <p id="nav-user-name" class="text-xs font-semibold text-slate-800 leading-tight">กำลังโหลดชื่อ...</p>
+                        <p class="text-[10px] text-slate-400 leading-none">นักเรียน</p>
                     </div>
-
-                    <div class="relative group cursor-pointer" onclick="document.getElementById('profile-upload-input').click()" title="คลิกเพื่อเปลี่ยนรูปโปรไฟล์">
-                        <img id="nav-avatar-img" src="https://via.placeholder.com/40" alt="Avatar" class="w-9 h-9 rounded-full object-cover border-2 border-purple-500 shadow-sm transition-transform group-hover:scale-105">
-                        <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs">
+                    
+                    <div class="relative group cursor-pointer" onclick="document.getElementById('avatar-file-input').click()" title="คลิกเพื่ออัปโหลดรูปภาพนักเรียน">
+                        <img id="nav-user-avatar" src="https://via.placeholder.com/150" alt="Student Profile" class="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-xs group-hover:scale-105 transition-transform">
+                        <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white text-[10px]">
                             <i class="fa-solid fa-camera"></i>
                         </div>
                     </div>
+                    <input type="file" id="avatar-file-input" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)">
 
-                    <input type="file" id="profile-upload-input" accept="image/*" class="hidden" onchange="uploadProfilePicture(event)">
-
-                    <button onclick="logout()" class="w-8 h-8 rounded-full bg-white text-slate-500 hover:text-red-500 hover:bg-red-50 flex items-center justify-center shadow-sm transition-colors cursor-pointer" title="ออกจากระบบ">
-                        <i class="fa-solid fa-right-from-bracket text-xs"></i>
+                    <button onclick="logoutUser()" class="text-slate-400 hover:text-red-500 transition-colors text-xs p-1" title="ออกจากระบบ">
+                        <i class="fa-solid fa-right-from-bracket"></i>
                     </button>
                 </div>
             </div>
         </div>
-    </header>
+    </nav>
 
-    <main class="max-w-6xl mx-auto px-4 py-8 flex-1 w-full space-y-8">
+    <main class="max-w-4xl mx-auto px-4 py-8 flex-1 w-full space-y-6">
         
-        <section class="enter-item bg-gradient-to-r from-indigo-900 via-indigo-800 to-purple-900 rounded-3xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
-            <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="relative z-10 max-w-2xl">
-                <span class="inline-block px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-medium text-indigo-200 mb-3 border border-white/10">✨ ระบบบริการสภานักเรียนออนไลน์</span>
-                <h1 class="text-24 sm:text-3xl font-bold tracking-tight mb-2">เปิดพื้นที่รับฟังเสียงของชาว <span class="text-amber-300">"น้ำเงิน-ชมพู"</span></h1>
-                <p class="text-indigo-100 text-sm sm:text-base leading-relaxed mb-6">เพราะทุกความคิดเห็นและปัญหาของนักเรียนมีค่า ร่วมกันพัฒนาโรงเรียนพิริยาลัยของเราให้น่าอยู่ยิ่งขึ้นผ่านระบบบริการสภานักเรียน</p>
-                <div class="flex flex-wrap gap-3">
-                    <a href="#sos-section" class="bg-white text-indigo-900 hover:bg-indigo-50 font-semibold px-5 py-2.5 rounded-xl text-sm shadow-lg transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-bullhorn text-red-500"></i> แจ้งเรื่องร้องเรียน (SOS)
-                    </a>
-                    <a href="#idea-section" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-semibold px-5 py-2.5 rounded-xl text-sm transition-all flex items-center gap-2 backdrop-blur-sm">
-                        <i class="fa-solid fa-lightbulb text-amber-300"></i> เสนอไอเดียใหม่
-                    </a>
-                </div>
+        <section class="enter-item bg-gradient-to-br from-indigo-950 via-indigo-900 to-purple-950 text-white rounded-2xl p-6 sm:p-8 shadow-lg relative overflow-hidden">
+            <div class="absolute -right-12 -bottom-12 w-48 h-48 bg-pink-500/10 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute right-12 top--6 w-32 h-32 bg-indigo-500/10 rounded-full blur-xl pointer-events-none"></div>
+            
+            <div class="max-w-xl relative z-10">
+                <span class="text-[10px] sm:text-xs font-bold tracking-wider text-pink-400 bg-pink-500/10 px-2.5 py-1 rounded-full uppercase border border-pink-500/20">สภานักเรียนโรงเรียนพิริยาลัยจังหวัดแพร่</span>
+                <h1 class="text-xl sm:text-2xl font-bold tracking-tight mt-2.5 mb-2">ยินดีต้อนรับสู่ระบบบริการสภานักเรียนออนไลน์</h1>
+                <p class="text-slate-300 text-xs sm:text-sm leading-relaxed font-light">ร่วมเป็นส่วนหนึ่งในการพัฒนาโรงเรียนของเรา แจ้งเรื่องร้องเรียน เสนอความคิดเห็น หรือตรวจสอบสถานะการทำงานของสภานักเรียนได้ที่นี่</p>
             </div>
+            <div class="absolute right-6 bottom-4 opacity-15 text-8xl translate-x-4 translate-y-4 pointer-events-none select-none transition-transform duration-700 hover:scale-110">🏫</div>
         </section>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            <section id="sos-section" class="enter-item bg-white rounded-2xl p-6 border border-slate-100 shadow-sm card-lift" style="animation-delay: 0.1s;">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold text-lg">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                    </div>
+            <section class="enter-item bg-white rounded-2xl p-5 border border-slate-200/60 shadow-xs card-lift" style="animation-delay: 0.05s;">
+                <div class="flex items-center gap-2.5 mb-4">
+                    <span class="text-xl bg-red-50 p-1.5 rounded-lg">🚨</span>
                     <div>
-                        <h2 class="text-lg font-bold text-slate-800">สายด่วนร้องเรียน (SOS)</h2>
-                        <p class="text-xs text-slate-500">แจ้งปัญหา อาคารสถานที่ หรือสิ่งไม่ได้รับความสะดวก</p>
+                        <h2 class="text-sm font-bold text-slate-900">สายด่วนร้องเรียน (SOS)</h2>
+                        <p class="text-[11px] text-slate-400">แจ้งปัญหาสิ่งชำรุด หรือเรื่องด่วนที่ต้องการให้สภาฯ ประสานงาน</p>
                     </div>
                 </div>
 
-                <form onsubmit="submitSOS(event)" class="space-y-4">
+                <form onsubmit="submitSOS(event)" class="space-y-3.5">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">หมวดหมู่ปัญหา</label>
-                        <select id="sos_category" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
-                            <option value="อาคารสถานที่">🏫 อาคารสถานที่ / ห้องเรียน / ห้องน้ำ</option>
-                            <option value="สวัสดิการและอาหาร">🍽️ โรงอาหาร / ร้านค้า / สวัสดิการ</option>
-                            <option value="กฎระเบียบและวิชาการ">📚 กฎระเบียบ / การเรียนการสอน</option>
+                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">หมวดหมู่ปัญหา</label>
+                        <select id="sos_category" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 focus:bg-white transition-all">
+                            <option value="อาคารสถานที่">🏫 อาคารสถานที่ / ห้องเรียน</option>
+                            <option value="สวัสดิการ">🍽️ โรงอาหาร / สวัสดิการนักเรียน</option>
+                            <option value="วิชาการ">📚 การเรียนการสอน / กิจกรรม</option>
                             <option value="อื่นๆ">💬 อื่นๆ</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">รายละเอียดปัญหาที่พบ</label>
-                        <textarea id="sos_detail" rows="3" required placeholder="อธิบายรายละเอียดปัญหา หรือระบุสถานที่ให้ชัดเจน..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"></textarea>
+                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">รายละเอียด</label>
+                        <textarea id="sos_detail" rows="3" required placeholder="ระบุรายละเอียดปัญหาที่พบ และสถานที่ให้ชัดเจน..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 focus:bg-white transition-all"></textarea>
                     </div>
-                    <button type="submit" class="w-full bg-slate-900 hover:bg-indigo-600 text-white font-medium py-2.5 rounded-xl text-sm shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-paper-plane"></i> ส่งเรื่องให้สภานักเรียน
+                    <button type="submit" class="w-full bg-slate-900 hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl text-xs shadow-sm hover:shadow-red-500/20 active:scale-98 transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-paper-plane text-[10px]"></i>
+                        <span>ส่งเรื่องร้องเรียน</span>
                     </button>
                 </form>
             </section>
 
-            <section id="idea-section" class="enter-item bg-white rounded-2xl p-6 border border-slate-100 shadow-sm card-lift" style="animation-delay: 0.2s;">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg">
-                        <i class="fa-solid fa-lightbulb"></i>
-                    </div>
+            <section class="enter-item bg-white rounded-2xl p-5 border border-slate-200/60 shadow-xs card-lift" style="animation-delay: 0.1s;">
+                <div class="flex items-center gap-2.5 mb-4">
+                    <span class="text-xl bg-amber-50 p-1.5 rounded-lg">💡</span>
                     <div>
-                        <h2 class="text-lg font-bold text-slate-800">กระดานเสนอไอเดีย</h2>
-                        <p class="text-xs text-slate-500">แชร์ไอเดียสร้างสรรค์ เพื่อพัฒนากิจกรรมในโรงเรียน</p>
+                        <h2 class="text-sm font-bold text-slate-900">กระดานเสนอไอเดีย</h2>
+                        <p class="text-[11px] text-slate-400">เสนอแนวคิดสร้างสรรค์ หรือกิจกรรมที่อยากให้เกิดขึ้นในโรงเรียน</p>
                     </div>
                 </div>
 
-                <form onsubmit="submitIdea(event)" class="space-y-4 mb-6">
+                <form onsubmit="submitIdea(event)" class="space-y-3 mb-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">หัวข้อไอเดียของคุณ</label>
-                        <input type="text" id="idea_title" required placeholder="เช่น อยากให้มีดนตรีในสวนช่วงพักเที่ยง..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all">
+                        <input type="text" id="idea_title" required placeholder="ฉันอยากให้มีดนตรีในสวนช่วงพักเที่ยง..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all">
                     </div>
-                    <button type="submit" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium py-2 rounded-xl text-sm shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-plus"></i> เสนอไอเดีย
+                    <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2.5 rounded-xl text-xs shadow-sm hover:shadow-indigo-500/20 active:scale-98 transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-plus text-[10px]"></i>
+                        <span>เสนอไอเดียใหม่</span>
                     </button>
                 </form>
 
-                <div class="border-t border-slate-100 pt-4">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">🔥 ไอเดียยอดนิยมจากเพื่อนๆ</h3>
-                    <div id="ideas-container" class="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
-                        <p class="text-xs text-slate-400 text-center py-4">กำลังโหลดไอเดีย...</p>
-                    </div>
+                <div class="border-t border-slate-100 pt-3">
+                    <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-fire text-orange-500 text-[9px]"></i> ไอเดียล่าสุดจากเพื่อนๆ
+                    </h3>
+                    <div id="ideas-container" class="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+                        </div>
                 </div>
             </section>
         </div>
 
     </main>
 
-    <footer class="bg-white border-t border-slate-200/80 mt-auto py-6 text-center text-xs text-slate-500">
-        <p>© 2026 PRSC Student Council. สภานักเรียนโรงเรียนพิริยาลัยจังหวัดแพร่.</p>
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-[10px] text-slate-400">
+        <p>© 2026 PRSC Student Council. All rights reserved.</p>
     </footer>
 
-    <div id="pdpa-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 enter-item">
-            <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl mb-4 mx-auto">
-                <i class="fa-solid fa-shield-halved"></i>
-            </div>
-            <h3 class="text-lg font-bold text-center text-slate-800 mb-2">นโยบายคุ้มครองข้อมูลส่วนบุคคล (PDPA)</h3>
-            <p class="text-xs text-slate-500 text-center leading-relaxed mb-6">
-                ระบบบริการสภานักเรียน มีความจำเป็นต้องขอเก็บข้อมูล ชื่อ-นามสกุล, รหัสนักเรียน และรูปโปรไฟล์ เพื่อระบุตัวตนและป้องกันการสแปมระบบ โดยข้อมูลของคุณจะถูกเก็บรักษาอย่างปลอดภัยและใช้ภายในกิจกรรมของโรงเรียนเท่านั้น
+    <div id="pdpa-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 enter-item">
+            <h3 class="text-sm font-bold text-slate-900 mb-2 flex items-center gap-1.5">
+                <span class="text-base">🛡️</span> การคุ้มครองข้อมูลส่วนบุคคล
+            </h3>
+            <p class="text-[11px] text-slate-500 leading-relaxed mb-5">
+                ระบบนี้มีความจำเป็นต้องขอประมวลผลข้อมูลส่วนบุคคลของท่าน เช่น ชื่อ-นามสกุล และบัญชีอีเมลโรงเรียน เพื่อระบุตัวตนและยืนยันสิทธิ์ความเป็นนักเรียนในการส่งเรื่องร้องเรียน ข้อมูลนี้จะไม่ถูกเผยแพร่สู่สาธารณะโดยไม่ได้รับอนุญาต
             </p>
-            <div class="flex gap-3">
-                <button onclick="acceptPDPA()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-3 rounded-xl shadow-md shadow-indigo-500/20 transition-all cursor-pointer">
-                    ยอมรับเงื่อนไขและเข้าใช้งาน
+            <div class="flex gap-2">
+                <button onclick="acceptPDPA()" class="flex-1 bg-slate-900 hover:bg-indigo-600 text-white text-xs font-semibold py-2.5 rounded-xl shadow-md transition-all active:scale-95 cursor-pointer">
+                    ยินยอมและเข้าใช้งาน
                 </button>
             </div>
         </div>
@@ -204,233 +169,171 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // --- 1. ตั้งค่า Supabase (ใส่ URL และ Anon Key ของโปรเจกต์คุณได้เลย) ---
-        const SUPABASE_URL = 'https://your-supabase-url.supabase.co'; // <--- ใส่ SUPABASE URL ของคุณที่นี่
-        const SUPABASE_ANON_KEY = 'eyJhbGciOi...'; // <--- ใส่ SUPABASE ANON KEY ของคุณที่นี่
+        const SUPABASE_URL = 'https://your-supabase-url.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOi...'; 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let currentUserSession = null;
-        let currentStudentData = null;
+        let currentUser = null;
 
-        // --- 2. ระบบเข้าสู่ระบบ และ ออกจากระบบ ---
         async function loginWithGoogle() {
             const { error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: { redirectTo: window.location.origin }
             });
-            if (error) alert('เกิดข้อผิดพลาดในการล็อกอิน: ' + error.message);
+            if (error) alert(error.message);
         }
 
-        async function logout() {
+        async function logoutUser() {
             await supabaseClient.auth.signOut();
             window.location.reload();
         }
 
-        // --- 3. ตรวจสอบสถานะผู้ใช้และแสดงผลบน Nav Bar ---
         async function checkUserSessionAndConsent() {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            currentUserSession = session;
-
-            const navLoginBtn = document.getElementById('btn-login-nav');
-            const navUserProfile = document.getElementById('nav-user-profile');
+            
+            const btnLogin = document.getElementById('btn-login');
+            const userProfileNav = document.getElementById('user-profile-nav');
+            const navUserName = document.getElementById('nav-user-name');
+            const navUserAvatar = document.getElementById('nav-user-avatar');
 
             if (session) {
-                // ซ่อนปุ่มเข้าสู่ระบบ -> แสดงโปรไฟล์
-                navLoginBtn.classList.add('hidden');
-                navUserProfile.classList.remove('hidden');
-                navUserProfile.classList.add('flex');
+                currentUser = session.user;
+                
+                btnLogin.classList.add('hidden');
+                userProfileNav.classList.remove('hidden');
+                userProfileNav.classList.add('flex');
 
-                // ดึงข้อมูลนักเรียนจาก Database
-                await loadStudentProfile(session.user.email);
+                try {
+                    const { data: student, error } = await supabaseClient
+                        .from('students')
+                        .select('name, avatar_url')
+                        .eq('email', currentUser.email)
+                        .single();
 
-                // ตรวจสอบ PDPA Consent
+                    if (student) {
+                        navUserName.textContent = student.name || currentUser.user_metadata.full_name || currentUser.email;
+                        if (student.avatar_url) {
+                            navUserAvatar.src = student.avatar_url;
+                        } else if (currentUser.user_metadata.avatar_url) {
+                            navUserAvatar.src = currentUser.user_metadata.avatar_url;
+                        }
+                    } else {
+                        navUserName.textContent = currentUser.user_metadata.full_name || currentUser.email;
+                        if (currentUser.user_metadata.avatar_url) {
+                            navUserAvatar.src = currentUser.user_metadata.avatar_url;
+                        }
+                    }
+                } catch (e) {
+                    navUserName.textContent = currentUser.user_metadata.full_name || currentUser.email;
+                }
+
                 if (!localStorage.getItem('prsc_pdpa_accepted')) {
                     document.getElementById('pdpa-modal').classList.remove('hidden');
                     document.getElementById('pdpa-modal').classList.add('flex');
                 }
             } else {
-                navLoginBtn.classList.remove('hidden');
-                navUserProfile.classList.add('hidden');
+                currentUser = null;
+                btnLogin.classList.remove('hidden');
+                userProfileNav.classList.add('hidden');
             }
 
             loadIdeas();
         }
 
-        // --- 4. ดึงข้อมูลชื่อ-สกุล และ รูปโปรไฟล์ จาก Supabase ---
-        async function loadStudentProfile(email) {
-            try {
-                // สมมติว่าในตาราง students มีคอลัมน์ email, name, avatar_url, student_id
-                const { data, error } = await supabaseClient
-                    .from('students')
-                    .select('student_id, name, avatar_url')
-                    .eq('email', email)
-                    .single();
-
-                const nameEl = document.getElementById('nav-student-name');
-                const avatarEl = document.getElementById('nav-avatar-img');
-
-                if (data) {
-                    currentStudentData = data;
-                    nameEl.textContent = data.name || email.split('@')[0];
-                    if (data.avatar_url) {
-                        avatarEl.src = data.avatar_url;
-                    }
-                } else {
-                    // ถ้ายังไม่มีในฐานข้อมูล ใช้ชื่อจากอีเมลหรือบัญชี Google ชั่วคราว
-                    nameEl.textContent = currentUserSession.user.user_metadata.full_name || email.split('@')[0];
-                    if (currentUserSession.user.user_metadata.avatar_url) {
-                        avatarEl.src = currentUserSession.user.user_metadata.avatar_url;
-                    }
-                }
-            } catch (err) {
-                console.log('Error loading profile:', err);
-            }
-        }
-
-        // --- 5. ระบบอัปโหลดรูปโปรไฟล์ใหม่ขึ้น Supabase Storage ---
-        async function uploadProfilePicture(event) {
+        async function handleAvatarUpload(event) {
             const file = event.target.files[0];
-            if (!file || !currentUserSession) return;
+            if (!file || !currentUser) return;
 
             if (!file.type.startsWith('image/')) {
-                alert('กรุณาเลือกไฟล์รูปภาพเท่านั้นครับ');
+                alert('กรุณาเลือกเฉพาะไฟล์รูปภาพเท่านั้นครับ');
                 return;
             }
 
-            const avatarEl = document.getElementById('nav-avatar-img');
-            avatarEl.style.opacity = '0.4'; // เอฟเฟกต์ตอนกำลังโหลด
+            const navUserAvatar = document.getElementById('nav-user-avatar');
+            navUserAvatar.style.opacity = '0.4';
 
             try {
                 const fileExt = file.name.split('.').pop();
-                const userId = currentUserSession.user.id;
-                const fileName = `avatar_${userId}_${Date.now()}.${fileExt}`;
+                const fileName = `avatar_${currentUser.id}_${Date.now()}.${fileExt}`;
                 const filePath = `profile-pics/${fileName}`;
 
-                // อัปโหลดขึ้น Bucket 'avatars'
                 const { error: uploadError } = await supabaseClient.storage
                     .from('avatars')
                     .upload(filePath, file, { upsert: true });
 
                 if (uploadError) throw uploadError;
 
-                // ขอ Public URL ของรูปภาพ
                 const { data: urlData } = supabaseClient.storage
                     .from('avatars')
                     .getPublicUrl(filePath);
 
                 const newAvatarUrl = urlData.publicUrl;
 
-                // บันทึก URL ใหม่ลงในตาราง students (ถ้ามีข้อมูลในระบบ)
-                if (currentStudentData && currentStudentData.student_id) {
-                    await supabaseClient
-                        .from('students')
-                        .update({ avatar_url: newAvatarUrl })
-                        .eq('student_id', currentStudentData.student_id);
-                }
+                await supabaseClient
+                    .from('students')
+                    .update({ avatar_url: newAvatarUrl })
+                    .eq('email', currentUser.email);
 
-                // แสดงผลบน Nav Bar ทันทีแบบ Smooth
-                avatarEl.src = newAvatarUrl;
-                avatarEl.style.opacity = '1';
-                alert('🎉 อัปโหลดรูปโปรไฟล์เรียบร้อยแล้ว!');
-
+                navUserAvatar.src = newAvatarUrl;
+                alert('📸 อัปโหลดรูปภาพโปรไฟล์นักเรียนสำเร็จแล้ว!');
             } catch (err) {
-                console.error('Upload failed:', err);
-                alert('เกิดข้อผิดพลาดในการอัปโหลด: ' + err.message);
-                avatarEl.style.opacity = '1';
+                console.error(err);
+                alert('เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ: ' + err.message);
+            } finally {
+                navUserAvatar.style.opacity = '1';
             }
         }
 
-        // --- 6. ระบบ PDPA Consent ---
         function acceptPDPA() {
             localStorage.setItem('prsc_pdpa_accepted', 'true');
             document.getElementById('pdpa-modal').classList.add('hidden');
         }
 
-        // --- 7. ระบบส่งเรื่องร้องเรียน (SOS) ---
-        async function submitSOS(e) {
-            e.preventDefault();
-            if (!currentUserSession) {
-                alert('กรุณาเข้าสู่ระบบด้วยบัญชี Google ของโรงเรียนก่อนส่งเรื่องร้องเรียนครับ');
-                return;
-            }
-
-            const category = document.getElementById('sos_category').value;
-            const detail = document.getElementById('sos_detail').value;
-
-            const { error } = await supabaseClient.from('sos_tickets').insert([
-                { category, detail, status: 'pending', user_email: currentUserSession.user.email }
-            ]);
-
-            if (!error) {
-                alert('🚀 ส่งเรื่องร้องเรียนเรียบร้อยแล้ว ทีมสภาฯ จะเข้าตรวจสอบให้เร็วที่สุดครับ!');
-                document.getElementById('sos_detail').value = '';
-            } else {
-                alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
-            }
-        }
-
-        // --- 8. ระบบเสนอไอเดีย และ โหวต ---
-        async function submitIdea(e) {
-            e.preventDefault();
-            if (!currentUserSession) {
-                alert('กรุณาเข้าสู่ระบบก่อนเสนอไอเดียครับ');
-                return;
-            }
-
-            const title = document.getElementById('idea_title').value;
-
-            const { error } = await supabaseClient.from('student_ideas').insert([
-                { title, votes: 1, is_approved: true, created_by: currentUserSession.user.email }
-            ]);
-
-            if (!error) {
-                alert('💡 เสนอไอเดียสำเร็จแล้ว!');
-                document.getElementById('idea_title').value = '';
-                loadIdeas();
-            } else {
-                alert('เกิดข้อผิดพลาด: ' + error.message);
-            }
-        }
-
         async function loadIdeas() {
             const container = document.getElementById('ideas-container');
-            const { data: ideas, error } = await supabaseClient
-                .from('student_ideas')
-                .select('*')
-                .order('votes', { ascending: false })
-                .limit(5);
-
+            const { data: ideas, error } = await supabaseClient.from('student_ideas').select('*').limit(5);
+            
             if (error || !ideas || ideas.length === 0) {
-                container.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">ยังไม่มีไอเดียในขณะนี้ ร่วมเป็นคนแรกที่เสนอไอเดียสิ!</p>';
+                container.innerHTML = '<p class="text-[11px] text-slate-400 py-2">ไม่มีไอเดียในขณะนี้</p>';
                 return;
             }
 
             container.innerHTML = '';
             ideas.forEach(idea => {
+                // เพิ่มความ Lively เล็กน้อยให้ไอเดียของเพื่อนๆ ยืดหยุ่นและเด้งตามเมาส์
                 container.innerHTML += `
-                    <div class="flex items-center justify-between bg-slate-50 hover:bg-slate-100/80 p-3 rounded-xl border border-slate-200/60 transition-colors">
-                        <span class="text-xs font-medium text-slate-700 flex-1 pr-2">${idea.title}</span>
-                        <button onclick="voteIdea(${idea.id}, ${idea.votes || 0})" class="bg-white hover:bg-amber-50 border border-slate-200 text-slate-700 hover:text-amber-600 font-semibold text-xs py-1 px-3 rounded-lg flex items-center gap-1.5 shadow-xs transition-all cursor-pointer">
+                    <div class="flex items-center justify-between bg-slate-50 hover:bg-indigo-50/40 p-2 rounded-xl border border-slate-100 hover:border-indigo-100/80 transition-all duration-200">
+                        <span class="text-xs text-slate-700 truncate max-w-[200px]">${idea.title}</span>
+                        <button class="bg-white hover:bg-amber-50 text-slate-600 hover:text-amber-600 border border-slate-200 text-xs py-1.5 px-3 rounded-lg flex items-center gap-1 shadow-2xs transition-all cursor-pointer">
                             <i class="fa-solid fa-caret-up"></i> ${idea.votes || 0}
                         </button>
                     </div>`;
             });
         }
 
-        async function voteIdea(id, currentVotes) {
-            if (!currentUserSession) {
-                alert('กรุณาเข้าสู่ระบบก่อนโหวตไอเดียครับ');
-                return;
-            }
-            const { error } = await supabaseClient
-                .from('student_ideas')
-                .update({ votes: currentVotes + 1 })
-                .eq('id', id);
+        async function submitSOS(e) {
+            e.preventDefault();
+            const category = document.getElementById('sos_category').value;
+            const detail = document.getElementById('sos_detail').value;
 
-            if (!error) loadIdeas();
+            const { error } = await supabaseClient.from('sos_tickets').insert([{ category, detail, status: 'pending' }]);
+            if (!error) {
+                alert('🚀 ส่งเรื่องร้องเรียนเรียบร้อยแล้ว ทีมสภาฯ จะเข้าตรวจสอบให้เร็วที่สุดครับ!');
+                document.getElementById('sos_detail').value = '';
+            }
         }
 
-        // --- 9. โหลดข้อมูลเมื่อเปิดหน้าเว็บ ---
+        async function submitIdea(e) {
+            e.preventDefault();
+            const title = document.getElementById('idea_title').value;
+
+            const { error } = await supabaseClient.from('student_ideas').insert([{ title, votes: 1, is_approved: false }]);
+            if (!error) {
+                alert('💡 เสนอไอเดียสำเร็จแล้ว! ไอเดียจะแสดงบนเว็บหลังจากผ่านการตรวจสอบความเหมาะสมจากพี่ๆ สภาฯ ครับ');
+                document.getElementById('idea_title').value = '';
+            }
+        }
+
         supabaseClient.auth.onAuthStateChange((event, session) => {
             checkUserSessionAndConsent();
         });

@@ -1,0 +1,38 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+
+  try {
+    const { imageBase64 } = await req.json()
+    // ดึงคีย์จาก Supabase Secrets ที่เราตั้งไว้ (ปลอดภัยสุดๆ)
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: "ตรวจสอบรูปภาพนี้ว่ามีความเหมาะสมหรือไม่ ตอบแค่ SAFE หรือ UNSAFE" },
+            { inline_data: { mime_type: "image/jpeg", data: imageBase64 } }
+          ]
+        }]
+      })
+    })
+
+    const data = await response.json()
+    const resultText = data.candidates[0].content.parts[0].text
+    
+    return new Response(JSON.stringify({ isSafe: resultText.includes('SAFE') }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders })
+  }
+})

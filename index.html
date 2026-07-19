@@ -51,6 +51,16 @@
             to   { opacity: 1; transform: scale(1) translateY(0); }
         }
 
+        /* Toast Animation */
+        @keyframes toastPopIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.9); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes toastPopOut {
+            from { opacity: 1; transform: translateY(0) scale(1); }
+            to   { opacity: 0; transform: translateY(20px) scale(0.9); }
+        }
+
         input:focus, textarea:focus, select:focus {
             box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
             border-color: #ef4444 !important;
@@ -66,6 +76,12 @@
     </style>
 </head>
 <body class="flex flex-col min-h-screen text-slate-100 pb-12">
+
+    <!-- Global Toast Notification (In-App Interface) -->
+    <div id="app-toast" class="fixed bottom-6 right-6 md:bottom-10 md:right-10 p-4 pr-6 rounded-2xl shadow-2xl z-[200] flex items-center gap-3 max-w-sm hidden transition-all">
+        <div id="app-toast-icon" class="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-white/20"></div>
+        <span id="app-toast-message" class="text-sm font-semibold text-white tracking-wide"></span>
+    </div>
 
     <!-- Authentication Overlay (บังคับล็อกอิน) -->
     <div id="auth-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
@@ -236,10 +252,41 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // กำหนดค่า Supabase (จากโค้ดเดิมของคุณ)
+        // กำหนดค่า Supabase
         const SUPABASE_URL = "https://dkuyxaujvhqanloqcgbh.supabase.co"; 
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdXl4YXVqdmhxYW5sb3FjZ2JoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyODg3OTcsImV4cCI6MjA5OTg2NDc5N30.GR2gCIWtqokqa5YBgXv1H1QsKQlPiDj9UF4i8C7BMmI";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ==================================================
+        // 🎨 FUNCTION: IN-APP NOTIFICATION (TOAST)
+        // ==================================================
+        let toastTimeout;
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('app-toast');
+            const messageSpan = document.getElementById('app-toast-message');
+            const iconDiv = document.getElementById('app-toast-icon');
+
+            // รีเซ็ตคลาสก่อนเพื่อตั้งค่าสีใหม่
+            toast.className = 'fixed bottom-6 right-6 md:bottom-10 md:right-10 p-4 pr-6 rounded-2xl shadow-2xl z-[200] flex items-center gap-3 max-w-sm transition-all text-white';
+            
+            if (type === 'error') {
+                toast.classList.add('bg-red-600');
+                iconDiv.innerHTML = '<i class="fa-solid fa-circle-exclamation text-white"></i>';
+            } else if (type === 'success') {
+                toast.classList.add('bg-emerald-600');
+                iconDiv.innerHTML = '<i class="fa-solid fa-circle-check text-white"></i>';
+            }
+
+            messageSpan.textContent = message;
+            toast.classList.remove('hidden');
+            toast.style.animation = 'toastPopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                 toast.style.animation = 'toastPopOut 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+                 setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 3500);
+        }
 
         // ==================================================
         // 🔐 FUNCTIONS: AUTHENTICATION & SESSION
@@ -253,10 +300,12 @@
             const { data, error } = await supabaseClient.auth.signInWithPassword({ email: dummyEmail, password: password });
             
             if (error) {
-                alert('ไม่พบรหัสนักเรียนนี้ หรือรหัสผ่านไม่ถูกต้องครับ');
+                // เรียกใช้ Toast แจ้งเตือนข้อผิดพลาดแทน Alert
+                showToast('ไม่พบรหัสนักเรียนนี้ หรือรหัสผ่านไม่ถูกต้องครับ', 'error');
             } else {
                 document.getElementById('login_student_id').value = '';
                 document.getElementById('login_id_password').value = '';
+                showToast('เข้าสู่ระบบสำเร็จ!', 'success');
                 checkUserSessionAndConsent();
             }
         }
@@ -281,7 +330,6 @@
                     document.getElementById('consent-overlay').classList.remove('hidden');
                 } else {
                     document.getElementById('consent-overlay').classList.add('hidden');
-                    // โหลดข้อมูลขึ้นหน้าเว็บ
                     fetchPRPosts();
                     fetchActivePoll();
                     fetchStudentIdeas();
@@ -303,9 +351,10 @@
 
             if (!error) {
                 document.getElementById('consent-overlay').classList.add('hidden');
-                window.location.reload();
+                showToast('บันทึกการยินยอมข้อมูลเรียบร้อยแล้ว', 'success');
+                setTimeout(() => window.location.reload(), 1000);
             } else {
-                alert('เกิดข้อผิดพลาด: ' + error.message);
+                showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
             }
         }
 
@@ -407,10 +456,10 @@
 
             const { error } = await supabaseClient.from('sos_tickets').insert([{ category, detail, status: 'pending' }]);
             if (!error) {
-                alert('🚀 ส่งเรื่องร้องเรียนเรียบร้อยแล้ว ทีมสภาฯ จะเข้าตรวจสอบให้เร็วที่สุดครับ!');
+                showToast('🚀 ส่งเรื่องร้องเรียนเรียบร้อยแล้ว ทีมสภาฯ จะเข้าตรวจสอบให้เร็วที่สุดครับ!', 'success');
                 document.getElementById('sos_detail').value = '';
             } else {
-                alert('เกิดข้อผิดพลาดในการส่งข้อมูล');
+                showToast('เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง', 'error');
             }
         }
 
@@ -420,17 +469,16 @@
 
             const { error } = await supabaseClient.from('student_ideas').insert([{ title, votes: 1, is_approved: false }]);
             if (!error) {
-                alert('💡 เสนอไอเดียสำเร็จแล้ว! รอการตรวจสอบความเหมาะสมจากพี่ๆ สภาฯ ครับ');
+                showToast('💡 เสนอไอเดียสำเร็จแล้ว! รอการตรวจสอบความเหมาะสมจากสภาฯ ครับ', 'success');
                 document.getElementById('idea_title').value = '';
             } else {
-                alert('เกิดข้อผิดพลาดในการส่งข้อมูล');
+                showToast('เกิดข้อผิดพลาดในการส่งข้อมูล', 'error');
             }
         }
 
         // ==================================================
         // ⚙️ INITIALIZATION
         // ==================================================
-        // ตรวจสอบ Auth State ตลอดเวลา
         supabaseClient.auth.onAuthStateChange((event, session) => {
             checkUserSessionAndConsent();
         });

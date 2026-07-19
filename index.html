@@ -235,7 +235,14 @@
                             <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">รายละเอียดปัญหา</label>
                             <textarea id="sos_detail" rows="4" required placeholder="ระบุรายละเอียดปัญหาที่คุณพบเจอ เพื่อให้สภาฯ เข้าช่วยเหลือ..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:border-red-800 transition-colors resize-none"></textarea>
                         </div>
-                        <button type="submit" class="w-full bg-red-800 text-white font-bold py-3.5 rounded-xl text-sm shadow-lg shadow-red-900/20 hover:bg-red-900 transition-all flex justify-center items-center gap-2">
+                        <!-- เพิ่มช่องอัปโหลดรูปภาพ -->
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">แนบรูปภาพประกอบ (ถ้ามี)</label>
+                            <input type="file" id="sos_image" accept="image/jpeg, image/png, image/webp" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:border-red-800 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-red-100 file:text-red-800 hover:file:bg-red-200">
+                            <p class="text-[10px] text-slate-400 mt-1">* รูปภาพจะถูกตรวจสอบความเหมาะสมโดย AI อัตโนมัติ</p>
+                        </div>
+
+                        <button id="sos_submit_btn" type="submit" class="w-full bg-red-800 text-white font-bold py-3.5 rounded-xl text-sm shadow-lg shadow-red-900/20 hover:bg-red-900 transition-all flex justify-center items-center gap-2">
                             <i class="fa-regular fa-paper-plane"></i> ส่งเรื่องร้องเรียน
                         </button>
                         <p class="text-[10px] text-slate-400 text-center mt-2 flex items-center justify-center gap-1">
@@ -256,16 +263,18 @@
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdXl4YXVqdmhxYW5sb3FjZ2JoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyODg3OTcsImV4cCI6MjA5OTg2NDc5N30.GR2gCIWtqokqa5YBgXv1H1QsKQlPiDj9UF4i8C7BMmI";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // ใส่คีย์ Gemini API ของคุณที่นี่ (หมายเหตุ: คีย์ที่ขึ้นต้นด้วย AQ.Ab8... ปกติจะเป็น Access Token ของระบบอื่น แนะนำให้ตรวจสอบที่ Google AI Studio อีกครั้งว่าคีย์ขึ้นต้นด้วย AIza... หรือไม่)
+        const GEMINI_API_KEY = "AQ.Ab8RN6LhZ8mWZgFhkaRP3-_MHfVYaQDXcuz7PF8wz4G_zVMnkA"; 
+
         // ==================================================
         // 🎨 FUNCTION: IN-APP NOTIFICATION (TOAST)
         // ==================================================
         let toastTimeout;
-        function showToast(message, type = 'success') {
+        function showToast(message, type = 'success', duration = 3500) {
             const toast = document.getElementById('app-toast');
             const messageSpan = document.getElementById('app-toast-message');
             const iconDiv = document.getElementById('app-toast-icon');
 
-            // รีเซ็ตคลาสก่อนเพื่อตั้งค่าสีใหม่
             toast.className = 'fixed bottom-6 right-6 md:bottom-10 md:right-10 p-4 pr-6 rounded-2xl shadow-xl z-[200] flex items-center gap-3 max-w-sm transition-all text-white';
             
             if (type === 'error') {
@@ -274,6 +283,9 @@
             } else if (type === 'success') {
                 toast.classList.add('bg-emerald-600');
                 iconDiv.innerHTML = '<i class="fa-solid fa-circle-check text-white"></i>';
+            } else if (type === 'loading') {
+                toast.classList.add('bg-blue-600');
+                iconDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-white"></i>';
             }
 
             messageSpan.textContent = message;
@@ -281,10 +293,14 @@
             toast.style.animation = 'toastPopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
 
             clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => {
-                 toast.style.animation = 'toastPopOut 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
-                 setTimeout(() => toast.classList.add('hidden'), 300);
-            }, 3500);
+            
+            // ถ้าระบุเวลาเป็น 0 แปลว่าให้แสดงค้างไว้จนกว่าจะสั่งปิด
+            if (duration > 0) {
+                toastTimeout = setTimeout(() => {
+                     toast.style.animation = 'toastPopOut 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+                     setTimeout(() => toast.classList.add('hidden'), 300);
+                }, duration);
+            }
         }
 
         // ==================================================
@@ -299,7 +315,6 @@
             const { data, error } = await supabaseClient.auth.signInWithPassword({ email: dummyEmail, password: password });
             
             if (error) {
-                // เรียกใช้ Toast แจ้งเตือนข้อผิดพลาดแทน Alert
                 showToast('ไม่พบรหัสนักเรียนนี้ หรือรหัสผ่านไม่ถูกต้องครับ', 'error');
             } else {
                 document.getElementById('login_student_id').value = '';
@@ -363,7 +378,7 @@
         }
 
         // ==================================================
-        // 📥 FUNCTIONS: DATA FETCHING & RENDERING (Light/Red Theme)
+        // 📥 FUNCTIONS: DATA FETCHING & RENDERING
         // ==================================================
         async function fetchPRPosts() {
             const container = document.getElementById('pr-posts-container');
@@ -446,20 +461,99 @@
         }
 
         // ==================================================
+        // 🤖 FUNCTION: GEMINI IMAGE MODERATION
+        // ==================================================
+        async function analyzeImageWithGemini(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                
+                reader.onload = async () => {
+                    // ดึง Base64 ออกมา
+                    const base64Data = reader.result.split(',')[1];
+                    const mimeType = file.type;
+
+                    try {
+                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{
+                                    parts: [
+                                        { text: "ตรวจสอบรูปภาพนี้ว่ามีความเหมาะสมที่จะลงในระบบของโรงเรียนหรือไม่ (ห้ามมีภาพโป๊เปลือย, ความรุนแรง, เลือด, อนาจาร หรือสิ่งผิดกฎหมาย) ตอบแค่คำว่า 'SAFE' ถ้าปลอดภัย หรือ 'UNSAFE' ถ้าไม่เหมาะสม" },
+                                        { inline_data: { mime_type: mimeType, data: base64Data } }
+                                    ]
+                                }]
+                            })
+                        });
+
+                        const data = await response.json();
+                        
+                        if (data.error) {
+                            throw new Error(data.error.message);
+                        }
+
+                        const resultText = data.candidates[0].content.parts[0].text.trim().toUpperCase();
+                        // คืนค่า true ถ้าปลอดภัย
+                        resolve(resultText.includes('SAFE') && !resultText.includes('UNSAFE'));
+                        
+                    } catch (err) {
+                        console.error("Gemini Error:", err);
+                        reject(err);
+                    }
+                };
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // ==================================================
         // 📤 FUNCTIONS: FORM SUBMISSION
         // ==================================================
         async function submitSOS(e) {
             e.preventDefault();
+            const btn = document.getElementById('sos_submit_btn');
             const category = document.getElementById('sos_category').value;
             const detail = document.getElementById('sos_detail').value;
+            const fileInput = document.getElementById('sos_image');
+            const file = fileInput.files[0];
 
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังประมวลผล...';
+
+            // 1. ตรวจสอบรูปภาพด้วย AI (ถ้ามีแนบมา)
+            if (file) {
+                showToast('กำลังตรวจสอบความเหมาะสมของรูปภาพโดย AI...', 'loading', 0);
+                try {
+                    const isSafe = await analyzeImageWithGemini(file);
+                    if (!isSafe) {
+                        showToast('ระบบปฏิเสธ: ภาพไม่เหมาะสม กรุณาใช้ภาพอื่นครับ', 'error');
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งเรื่องร้องเรียน';
+                        return; // หยุดการทำงานถ้าภาพไม่ปลอดภัย
+                    }
+                } catch (err) {
+                    showToast('เกิดข้อผิดพลาดในการตรวจสอบรูปภาพ (ตรวจสอบ API Key)', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งเรื่องร้องเรียน';
+                    return;
+                }
+            }
+
+            // 2. ถ้าผ่าน ส่งข้อมูลเข้าฐานข้อมูล (ในระบบจริง คุณสามารถเขียนอัปโหลดรูปเข้า Storage ตรงนี้ได้)
+            showToast('กำลังบันทึกข้อมูลเข้าระบบ...', 'loading', 0);
+            
             const { error } = await supabaseClient.from('sos_tickets').insert([{ category, detail, status: 'pending' }]);
+            
             if (!error) {
-                showToast('🚀 ส่งเรื่องร้องเรียนเรียบร้อยแล้ว ทีมสภาฯ จะเข้าตรวจสอบให้เร็วที่สุดครับ!', 'success');
+                showToast('ส่งเรื่องร้องเรียนเรียบร้อยแล้ว ทีมสภาฯ จะเข้าตรวจสอบให้เร็วที่สุดครับ!', 'success');
                 document.getElementById('sos_detail').value = '';
+                document.getElementById('sos_image').value = '';
             } else {
                 showToast('เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง', 'error');
             }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งเรื่องร้องเรียน';
         }
 
         async function submitIdea(e) {
@@ -478,7 +572,6 @@
         // ==================================================
         // ⚙️ INITIALIZATION
         // ==================================================
-        // ตรวจสอบ Auth State ตลอดเวลา
         supabaseClient.auth.onAuthStateChange((event, session) => {
             checkUserSessionAndConsent();
         });

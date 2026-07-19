@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRSC Portal - โรงเรียนพิริยาลัยจังหวัดแพร่</title>
+    <title>PRSC Portal - สภานักเรียนโรงเรียนพิริยาลัยจังหวัดแพร่</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@100..700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Anuphan', sans-serif; background-color: #0f172a; color: #f8fafc; overflow-x: hidden; }
-        .text-slate-11 { color: #cbd5e1; }
+        body { font-family: 'Anuphan', sans-serif; background-color: #f8fafc; color: #1e293b; overflow-x: hidden; }
         
         /* Lively, Responsive Animations */
         .enter-item {
@@ -28,7 +27,7 @@
         }
         .card-lift:hover {
             transform: translateY(-6px);
-            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.5);
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
         }
 
         button, a, .poll-option-btn {
@@ -47,23 +46,23 @@
             animation: dramaticZoom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
         }
         @keyframes dramaticZoom {
-            from { opacity: 0; transform: scale(0.85) translateY(20px); }
+            from { opacity: 0; transform: scale(0.9) translateY(15px); }
             to   { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         /* Toast Animation */
         @keyframes toastPopIn {
-            from { opacity: 0; transform: translateY(20px) scale(0.9); }
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
             to   { opacity: 1; transform: translateY(0) scale(1); }
         }
         @keyframes toastPopOut {
             from { opacity: 1; transform: translateY(0) scale(1); }
-            to   { opacity: 0; transform: translateY(20px) scale(0.9); }
+            to   { opacity: 0; transform: translateY(20px) scale(0.95); }
         }
 
         input:focus, textarea:focus, select:focus {
-            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
-            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.15); /* Red-800 glow */
+            border-color: #991b1b !important;
             outline: none;
         }
 
@@ -75,36 +74,36 @@
         }
     </style>
 </head>
-<body class="flex flex-col min-h-screen text-slate-100 pb-12">
+<body class="flex flex-col min-h-screen text-slate-800 pb-12">
 
     <!-- Global Toast Notification (In-App Interface) -->
-    <div id="app-toast" class="fixed bottom-6 right-6 md:bottom-10 md:right-10 p-4 pr-6 rounded-2xl shadow-2xl z-[200] flex items-center gap-3 max-w-sm hidden transition-all">
+    <div id="app-toast" class="fixed bottom-6 right-6 md:bottom-10 md:right-10 p-4 pr-6 rounded-2xl shadow-xl z-[200] flex items-center gap-3 max-w-sm hidden transition-all">
         <div id="app-toast-icon" class="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-white/20"></div>
         <span id="app-toast-message" class="text-sm font-semibold text-white tracking-wide"></span>
     </div>
 
     <!-- Authentication Overlay (บังคับล็อกอิน) -->
-    <div id="auth-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-950 border border-slate-800 p-8 md:p-10 rounded-3xl shadow-2xl w-[420px] max-w-full">
+    <div id="auth-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
+        <div class="bg-white border border-slate-100 p-8 md:p-10 rounded-3xl shadow-2xl w-[420px] max-w-full">
             <div class="text-center mb-6">
                 <!-- โลโก้โรงเรียน -->
-                <div class="w-14 h-14 rounded-full bg-slate-900 border border-slate-800 text-red-500 flex items-center justify-center text-2xl mx-auto shadow-lg mb-4">
+                <div class="w-14 h-14 rounded-full bg-red-50 text-red-800 flex items-center justify-center text-2xl mx-auto shadow-sm mb-4">
                     <i class="fa-solid fa-id-badge"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-white tracking-tight">PRSC PORTAL</h2>
-                <p class="text-sm text-slate-400 mt-1">ระบบฐานข้อมูลสภานักเรียน</p>
+                <h2 class="text-2xl font-bold text-slate-900 tracking-tight">PRSC PORTAL</h2>
+                <p class="text-sm text-slate-500 mt-1">ระบบฐานข้อมูลสภานักเรียน</p>
             </div>
 
             <form id="form-id" class="space-y-5" onsubmit="loginWithStudentID(event)">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">รหัสนักเรียน 5 หลัก</label>
-                    <input type="text" id="login_student_id" required placeholder="ตัวอย่าง: 46477" class="w-full px-4 py-3.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 transition-all text-sm">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">รหัสนักเรียน 5 หลัก</label>
+                    <input type="text" id="login_student_id" required placeholder="ตัวอย่าง: 46477" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 transition-all text-sm">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">รหัสผ่าน</label>
-                    <input type="password" id="login_id_password" required placeholder="รหัสผ่านเริ่มต้นคือ 12345" class="w-full px-4 py-3.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 transition-all text-sm">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">รหัสผ่าน</label>
+                    <input type="password" id="login_id_password" required placeholder="รหัสผ่านเริ่มต้นคือ 12345" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 transition-all text-sm">
                 </div>
-                <button type="submit" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-red-600/20 transition-all text-sm mt-2">
+                <button type="submit" class="w-full bg-red-800 hover:bg-red-900 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-red-900/20 transition-all text-sm mt-2">
                     ลงชื่อเข้าใช้
                 </button>
             </form>
@@ -112,18 +111,18 @@
     </div>
 
     <!-- Consent Overlay (ข้อตกลง PDPA) -->
-    <div id="consent-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-950 border border-slate-800 p-8 md:p-10 rounded-3xl shadow-2xl w-[480px] max-w-full max-h-[90vh] flex flex-col">
+    <div id="consent-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4 hidden">
+        <div class="bg-white border border-slate-100 p-8 md:p-10 rounded-3xl shadow-2xl w-[480px] max-w-full max-h-[90vh] flex flex-col">
             <div class="text-center mb-6">
-                <div class="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/30 text-red-500 flex items-center justify-center text-2xl mx-auto mb-4">
+                <div class="w-14 h-14 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center text-2xl mx-auto mb-4">
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
-                <h2 class="text-xl font-bold text-white tracking-tight">ข้อตกลงและนโยบายความเป็นส่วนตัว</h2>
-                <p class="text-sm text-slate-400 mt-1">โปรดอ่านและกดยินยอมเพื่อเข้าสู่ระบบ</p>
+                <h2 class="text-xl font-bold text-slate-900 tracking-tight">ข้อตกลงและนโยบายความเป็นส่วนตัว</h2>
+                <p class="text-sm text-slate-500 mt-1">โปรดอ่านและกดยินยอมเพื่อเข้าสู่ระบบ</p>
             </div>
 
-            <div class="overflow-y-auto bg-slate-900 p-5 rounded-2xl border border-slate-800 text-sm text-slate-300 space-y-4 leading-relaxed mb-8 flex-1">
-                <p class="font-bold text-white">วัตถุประสงค์ในการใช้งานระบบ:</p>
+            <div class="overflow-y-auto bg-slate-50 p-5 rounded-2xl border border-slate-100 text-sm text-slate-700 space-y-4 leading-relaxed mb-8 flex-1">
+                <p class="font-bold text-slate-900">วัตถุประสงค์ในการใช้งานระบบ:</p>
                 <ul class="space-y-2 list-disc list-inside pl-2">
                     <li>ระบบ <b>"PRSC Help Me!"</b> ข้อมูลปัญหาจะถูกส่งหาทางสภานักเรียนโดยตรงเพื่อเร่งแก้ไข และจะปิดบังข้อมูลผู้แจ้งเพื่อความปลอดภัยสูงสุด</li>
                     <li>ระบบ <b>"Student Voice"</b> จะเปิดให้คุณเสนอไอเดียและร่วมโหวตได้อย่างอิสระเพื่อพัฒนาโรงเรียนของเรา</li>
@@ -131,10 +130,10 @@
             </div>
 
             <div class="space-y-3">
-                <button onclick="acceptConsent()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-red-600/20 transition-all text-sm">
+                <button onclick="acceptConsent()" class="w-full bg-gradient-to-r from-red-800 to-red-950 hover:opacity-95 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-red-900/20 transition-all text-sm">
                     รับทราบและยินยอมเข้าใช้งาน
                 </button>
-                <button onclick="logout()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-3 px-4 rounded-xl transition-all text-sm block">
+                <button onclick="logout()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium py-3 px-4 rounded-xl transition-all text-sm block">
                     ยกเลิกและออกจากระบบ
                 </button>
             </div>
@@ -142,17 +141,18 @@
     </div>
 
     <!-- Navbar -->
-    <nav class="bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-800">
+    <nav class="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 shadow-sm">
         <div class="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-sm border border-slate-700 shadow-md">
+                <!-- โลโก้โรงเรียน -->
+                <div class="w-10 h-10 rounded-xl bg-red-800 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-red-900/10">
                     PR
                 </div>
-                <span class="font-bold text-lg tracking-tight text-white">PRSC PORTAL</span>
+                <span class="font-bold text-lg tracking-tight text-slate-900">PRSC PORTAL</span>
             </div>
             <div class="flex items-center gap-4">
-                <span id="user-display-id" class="text-sm text-red-400 font-semibold hidden md:inline px-3 py-1 bg-red-500/10 rounded-full border border-red-500/20"></span>
-                <button onclick="logout()" class="text-sm bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white px-4 py-2 rounded-xl font-medium transition-all">
+                <span id="user-display-id" class="text-sm text-slate-500 font-semibold hidden md:inline px-3 py-1 bg-slate-100 rounded-full border border-slate-200"></span>
+                <button onclick="logout()" class="text-sm bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900 px-4 py-2 rounded-xl font-medium transition-all">
                     ออกจากระบบ
                 </button>
             </div>
@@ -162,13 +162,12 @@
     <!-- Main Content -->
     <main class="max-w-6xl mx-auto px-4 mt-8 space-y-12">
         <!-- Hero Section -->
-        <section class="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden shadow-xl enter-item">
-            <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-red-600/20 rounded-full blur-[80px]"></div>
-            <div class="absolute -left-10 -top-10 w-40 h-40 bg-blue-600/10 rounded-full blur-[60px]"></div>
+        <section class="bg-gradient-to-br from-red-900 to-slate-950 rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden shadow-xl enter-item">
+            <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-red-600/20 rounded-full blur-3xl"></div>
             <div class="relative z-10 max-w-2xl">
-                <span class="bg-red-500/20 text-red-400 text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-full border border-red-500/20 mb-4 inline-block">Official Student Portal</span>
+                <span class="bg-red-500/20 text-red-300 text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-full border border-red-500/20 mb-4 inline-block">Official Student Portal</span>
                 <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mt-2 leading-tight">เสียงของนักเรียน <br/>พัฒนาโรงเรียนของเรา</h1>
-                <p class="text-slate-400 text-sm md:text-base mt-4 font-light leading-relaxed">แพลตฟอร์มกลางของสภานักเรียนโรงเรียนพิริยาลัยจังหวัดแพร่ (PRSC) มาร่วมกันสร้างสภาพแวดล้อมที่ดียิ่งขึ้น</p>
+                <p class="text-slate-300 text-sm md:text-base mt-4 font-light leading-relaxed">แพลตฟอร์มกลางของสภานักเรียนโรงเรียนพิริยาลัยจังหวัดแพร่ (PRSC) มาร่วมกันสร้างสภาพแวดล้อมที่ดียิ่งขึ้น</p>
             </div>
         </section>
 
@@ -177,8 +176,8 @@
             <div class="lg:col-span-2 space-y-12">
                 <!-- ข่าวประชาสัมพันธ์ -->
                 <section class="enter-item" style="animation-delay: 0.1s;">
-                    <h2 class="text-xl font-bold tracking-tight text-white mb-6 flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-red-400"><i class="fa-solid fa-bullhorn text-sm"></i></div>
+                    <h2 class="text-xl font-bold tracking-tight text-slate-900 mb-6 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center text-red-800"><i class="fa-solid fa-bullhorn text-sm"></i></div>
                         ข่าวประชาสัมพันธ์สภาฯ
                     </h2>
                     <div id="pr-posts-container" class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -187,22 +186,22 @@
                 </section>
 
                 <!-- Student Voice -->
-                <section class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-sm enter-item" style="animation-delay: 0.2s;">
+                <section class="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm enter-item" style="animation-delay: 0.2s;">
                     <div class="flex items-center gap-3 mb-2">
-                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-amber-400"><i class="fa-solid fa-lightbulb text-sm"></i></div>
-                        <h2 class="text-xl font-bold tracking-tight text-white">Student Voice เสนอและโหวต</h2>
+                        <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600"><i class="fa-solid fa-lightbulb text-sm"></i></div>
+                        <h2 class="text-xl font-bold tracking-tight text-slate-900">Student Voice เสนอและโหวต</h2>
                     </div>
-                    <p class="text-sm text-slate-400 mb-6 pl-11">ร่วมโหวตข้อเสนอของเพื่อนๆ หรือสร้างหัวข้อไอเดียใหม่</p>
+                    <p class="text-sm text-slate-500 mb-6 pl-11">ร่วมโหวตข้อเสนอของเพื่อนๆ หรือสร้างหัวข้อไอเดียใหม่</p>
                     
                     <div id="ideas-container" class="space-y-3 mb-8">
                         <!-- ถูกเติมด้วย JS -->
                     </div>
 
-                    <form onsubmit="submitIdea(event)" class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
-                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 px-1">เสนอไอเดียของคุณ</label>
+                    <form onsubmit="submitIdea(event)" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 px-1">เสนอไอเดียของคุณ</label>
                         <div class="flex flex-col sm:flex-row gap-3">
-                            <input type="text" id="idea_title" required placeholder="เช่น อยากให้มีตู้กดน้ำจุดอาคาร 3..." class="flex-1 px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white outline-none focus:border-red-500 transition-colors">
-                            <button type="submit" class="bg-red-600 text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-red-500 transition-all sm:w-auto w-full shadow-lg shadow-red-600/20">ส่งไอเดีย</button>
+                            <input type="text" id="idea_title" required placeholder="เช่น อยากให้มีตู้กดน้ำจุดอาคาร 3..." class="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:border-red-800 transition-colors">
+                            <button type="submit" class="bg-slate-900 text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-slate-800 transition-all sm:w-auto w-full shadow-md shadow-slate-900/10">ส่งไอเดีย</button>
                         </div>
                     </form>
                 </section>
@@ -211,21 +210,21 @@
             <!-- Right Column: Poll & SOS -->
             <div class="space-y-8">
                 <!-- Live Poll -->
-                <section id="active-poll-card" class="bg-slate-900 border border-slate-800 text-white rounded-3xl p-6 md:p-8 shadow-xl relative overflow-hidden enter-item" style="animation-delay: 0.3s;">
+                <section id="active-poll-card" class="bg-gradient-to-b from-slate-900 to-slate-950 text-white rounded-3xl p-6 md:p-8 shadow-xl relative overflow-hidden enter-item" style="animation-delay: 0.3s;">
                     <!-- ถูกเติมด้วย JS -->
                 </section>
 
                 <!-- SOS Form -->
-                <section class="bg-red-950/20 border border-red-900/30 rounded-3xl p-6 md:p-8 shadow-sm enter-item" style="animation-delay: 0.4s;">
+                <section class="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm enter-item" style="animation-delay: 0.4s;">
                     <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 rounded-xl bg-red-600/20 flex items-center justify-center text-red-500 border border-red-500/20"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                        <h2 class="font-bold text-lg text-white">PRSC Help Me! <br/><span class="text-sm font-medium text-red-400">แจ้งปัญหา (ลับ)</span></h2>
+                        <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center text-red-600 border border-red-200"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <h2 class="font-bold text-lg text-slate-900">PRSC Help Me! <br/><span class="text-sm font-medium text-slate-500">แจ้งปัญหา (ลับ)</span></h2>
                     </div>
                     
                     <form onsubmit="submitSOS(event)" class="space-y-5">
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">หมวดหมู่ปัญหา</label>
-                            <select id="sos_category" class="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-sm text-white outline-none focus:border-red-500 transition-colors appearance-none">
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">หมวดหมู่ปัญหา</label>
+                            <select id="sos_category" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:border-red-800 transition-colors appearance-none">
                                 <option value="สถานที่/อาคาร">อาคารสถานที่ / ตู้กดน้ำ / ห้องน้ำ</option>
                                 <option value="การเรียน/วิชาการ">การเรียน / วิชาการ</option>
                                 <option value="กฎระเบียบ">กฎระเบียบ / ความประพฤติ</option>
@@ -233,14 +232,14 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">รายละเอียดปัญหา</label>
-                            <textarea id="sos_detail" rows="4" required placeholder="ระบุรายละเอียดปัญหาที่คุณพบเจอ เพื่อให้สภาฯ เข้าช่วยเหลือ..." class="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-sm text-white outline-none focus:border-red-500 transition-colors resize-none"></textarea>
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">รายละเอียดปัญหา</label>
+                            <textarea id="sos_detail" rows="4" required placeholder="ระบุรายละเอียดปัญหาที่คุณพบเจอ เพื่อให้สภาฯ เข้าช่วยเหลือ..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:border-red-800 transition-colors resize-none"></textarea>
                         </div>
-                        <button type="submit" class="w-full bg-red-600 text-white font-bold py-3.5 rounded-xl text-sm shadow-lg shadow-red-600/20 hover:bg-red-500 transition-all flex justify-center items-center gap-2">
+                        <button type="submit" class="w-full bg-red-800 text-white font-bold py-3.5 rounded-xl text-sm shadow-lg shadow-red-900/20 hover:bg-red-900 transition-all flex justify-center items-center gap-2">
                             <i class="fa-regular fa-paper-plane"></i> ส่งเรื่องร้องเรียน
                         </button>
-                        <p class="text-[10px] text-slate-500 text-center mt-2 flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-lock text-slate-600"></i> ข้อมูลของคุณจะถูกเก็บเป็นความลับ
+                        <p class="text-[10px] text-slate-400 text-center mt-2 flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-lock text-slate-400"></i> ข้อมูลของคุณจะถูกเก็บเป็นความลับ
                         </p>
                     </form>
                 </section>
@@ -252,7 +251,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // กำหนดค่า Supabase
+        // กำหนดค่า Supabase 
         const SUPABASE_URL = "https://dkuyxaujvhqanloqcgbh.supabase.co"; 
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdXl4YXVqdmhxYW5sb3FjZ2JoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyODg3OTcsImV4cCI6MjA5OTg2NDc5N30.GR2gCIWtqokqa5YBgXv1H1QsKQlPiDj9UF4i8C7BMmI";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -267,10 +266,10 @@
             const iconDiv = document.getElementById('app-toast-icon');
 
             // รีเซ็ตคลาสก่อนเพื่อตั้งค่าสีใหม่
-            toast.className = 'fixed bottom-6 right-6 md:bottom-10 md:right-10 p-4 pr-6 rounded-2xl shadow-2xl z-[200] flex items-center gap-3 max-w-sm transition-all text-white';
+            toast.className = 'fixed bottom-6 right-6 md:bottom-10 md:right-10 p-4 pr-6 rounded-2xl shadow-xl z-[200] flex items-center gap-3 max-w-sm transition-all text-white';
             
             if (type === 'error') {
-                toast.classList.add('bg-red-600');
+                toast.classList.add('bg-red-800');
                 iconDiv.innerHTML = '<i class="fa-solid fa-circle-exclamation text-white"></i>';
             } else if (type === 'success') {
                 toast.classList.add('bg-emerald-600');
@@ -364,7 +363,7 @@
         }
 
         // ==================================================
-        // 📥 FUNCTIONS: DATA FETCHING & RENDERING (Dark Theme)
+        // 📥 FUNCTIONS: DATA FETCHING & RENDERING (Light/Red Theme)
         // ==================================================
         async function fetchPRPosts() {
             const container = document.getElementById('pr-posts-container');
@@ -372,8 +371,8 @@
 
             if (error || !posts || posts.length === 0) {
                 container.innerHTML = `
-                    <div class="col-span-full bg-slate-900 rounded-3xl p-10 border border-slate-800 text-center text-slate-500">
-                        <i class="fa-solid fa-newspaper text-3xl mb-3 opacity-50"></i>
+                    <div class="col-span-full bg-white rounded-3xl p-10 border border-slate-100 text-center text-slate-400">
+                        <i class="fa-solid fa-newspaper text-3xl mb-3 opacity-30"></i>
                         <p class="text-sm">ยังไม่มีข่าวประชาสัมพันธ์ในขณะนี้</p>
                     </div>`;
                 return;
@@ -382,10 +381,10 @@
             container.innerHTML = '';
             posts.forEach((post, i) => {
                 container.innerHTML += `
-                    <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-sm card-lift enter-item" style="animation-delay:${i * 0.1}s">
-                        <span class="text-[10px] font-bold px-2.5 py-1 bg-slate-800 text-slate-300 rounded-full uppercase tracking-wider">${post.category || 'ข่าวทั่วไป'}</span>
-                        <h3 class="font-bold text-base text-white mt-4 mb-2 leading-snug">${post.title}</h3>
-                        <p class="text-sm text-slate-400 line-clamp-3 leading-relaxed">${post.content}</p>
+                    <div class="bg-white border border-slate-100 p-6 rounded-3xl shadow-sm card-lift enter-item" style="animation-delay:${i * 0.1}s">
+                        <span class="text-[10px] font-bold px-2.5 py-1 bg-red-50 text-red-800 rounded-full uppercase tracking-wider">${post.category || 'ข่าวทั่วไป'}</span>
+                        <h3 class="font-bold text-base text-slate-900 mt-4 mb-2 leading-snug">${post.title}</h3>
+                        <p class="text-sm text-slate-600 line-clamp-3 leading-relaxed">${post.content}</p>
                     </div>`;
             });
         }
@@ -396,8 +395,8 @@
 
             if (error || !poll) {
                 card.innerHTML = `
-                    <div class="text-center py-8 text-slate-500">
-                        <i class="fa-solid fa-square-poll-vertical text-4xl mb-3 opacity-50"></i>
+                    <div class="text-center py-8 text-slate-400">
+                        <i class="fa-solid fa-square-poll-vertical text-4xl mb-3 opacity-30"></i>
                         <p class="text-sm">ขณะนี้ยังไม่มีหัวข้อโพลเปิดโหวต</p>
                     </div>`;
                 return;
@@ -406,9 +405,9 @@
             let optionsHTML = '';
             poll.poll_options.forEach((opt, i) => {
                 optionsHTML += `
-                    <button class="poll-option-btn w-full bg-slate-950 border border-slate-800 hover:border-red-500 text-slate-200 font-medium py-3.5 px-5 rounded-xl text-sm text-left flex justify-between items-center group mb-3">
+                    <button class="poll-option-btn w-full bg-white/10 hover:bg-white/20 border border-transparent text-white font-medium py-3.5 px-5 rounded-xl text-sm text-left flex justify-between items-center group mb-3">
                         <span>${opt.option_text}</span> 
-                        <span class="text-slate-500 font-medium text-xs group-hover:text-red-400 transition-colors">${opt.votes_count || 0} โหวต</span>
+                        <span class="text-white/60 font-medium text-xs group-hover:text-white transition-colors">${opt.votes_count || 0} โหวต</span>
                     </button>`;
             });
 
@@ -427,8 +426,8 @@
 
             if (error || !ideas || ideas.length === 0) {
                 container.innerHTML = `
-                    <div class="bg-slate-950 rounded-2xl p-8 border border-dashed border-slate-700 text-center text-slate-500">
-                        <i class="fa-regular fa-lightbulb text-3xl mb-3 opacity-50"></i>
+                    <div class="bg-slate-50 rounded-2xl p-8 border border-dashed border-slate-200 text-center text-slate-400">
+                        <i class="fa-regular fa-lightbulb text-3xl mb-3 opacity-30"></i>
                         <p class="text-sm">ยังไม่มีไอเดียเสนอแนะ ร่วมส่งไอเดียแรกของคุณด้านล่างได้เลยครับ</p>
                     </div>`;
                 return;
@@ -437,10 +436,10 @@
             container.innerHTML = '';
             ideas.forEach((idea, i) => {
                 container.innerHTML += `
-                    <div class="card-lift flex items-center justify-between p-4 bg-slate-950 border border-slate-800 rounded-2xl enter-item" style="animation-delay:${i * 0.08}s">
-                        <p class="text-sm font-medium text-slate-200 pr-4">${idea.title}</p>
-                        <button class="bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700 text-xs font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 transition-colors shrink-0">
-                            <i class="fa-solid fa-caret-up text-red-400"></i> ${idea.votes || 0}
+                    <div class="card-lift flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl enter-item" style="animation-delay:${i * 0.08}s">
+                        <p class="text-sm font-medium text-slate-800 pr-4">${idea.title}</p>
+                        <button class="bg-white text-slate-600 hover:text-slate-900 border border-slate-200 text-xs font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 transition-colors shrink-0 shadow-sm">
+                            <i class="fa-solid fa-caret-up text-amber-500"></i> ${idea.votes || 0}
                         </button>
                     </div>`;
             });
@@ -479,6 +478,7 @@
         // ==================================================
         // ⚙️ INITIALIZATION
         // ==================================================
+        // ตรวจสอบ Auth State ตลอดเวลา
         supabaseClient.auth.onAuthStateChange((event, session) => {
             checkUserSessionAndConsent();
         });

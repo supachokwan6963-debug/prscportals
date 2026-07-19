@@ -9,8 +9,7 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { imageBase64 } = await req.json()
-    // ดึงคีย์จาก Supabase Secrets ที่เราตั้งไว้ (ปลอดภัยสุดๆ)
+    const { imageBase64, mimeType } = await req.json()
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
@@ -19,15 +18,15 @@ serve(async (req) => {
       body: JSON.stringify({
         contents: [{
           parts: [
-            { text: "ตรวจสอบรูปภาพนี้ว่ามีความเหมาะสมหรือไม่ ตอบแค่ SAFE หรือ UNSAFE" },
-            { inline_data: { mime_type: "image/jpeg", data: imageBase64 } }
+            { text: "ตรวจสอบรูปภาพนี้ว่าเหมาะสมกับโรงเรียนหรือไม่ ตอบแค่ SAFE ถ้าปลอดภัย หรือ UNSAFE ถ้าไม่" },
+            { inline_data: { mime_type: mimeType || "image/jpeg", data: imageBase64 } }
           ]
         }]
       })
     })
 
     const data = await response.json()
-    const resultText = data.candidates[0].content.parts[0].text
+    const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || "UNSAFE"
     
     return new Response(JSON.stringify({ isSafe: resultText.includes('SAFE') }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

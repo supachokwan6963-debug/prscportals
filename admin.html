@@ -140,7 +140,7 @@
   <!-- 3. LOGIC & SUPABASE INTEGRATION            -->
   <!-- ========================================== -->
   <script>
-    // เปลี่ยนค่าพวกนี้ให้ตรงกับโปรเจกต์ Supabase ของคุณ
+    // ⚠️ อย่าลืมใส่ URL และ KEY ของโปรเจกต์คุณ ⚠️
     const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL"; 
     const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY"; 
     
@@ -252,28 +252,48 @@
       renderExtraControls();
     }
 
-    // เรนเดอร์ตารางตั๋วร้องเรียน
+    // 🎨 ฟังก์ชันสำหรับวาดตารางและ Dropdown เปลี่ยนสถานะ
     function renderTicketsTable(tickets) {
       if (tickets.length === 0) {
         ticketsTableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-gray-400">ยังไม่มีรายการแจ้งเรื่องร้องเรียนใน Scope ของคุณ</td></tr>`;
         return;
       }
 
-      const statusMap = {
-        'pending': '<span class="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-sm">รอดำเนินการ</span>',
-        'processing': '<span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-sm">กำลังดำเนินการ</span>',
-        'resolved': '<span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-1 rounded-sm">เสร็จสิ้น</span>'
-      };
-
       ticketsTableBody.innerHTML = tickets.map(ticket => `
-        <tr class="bg-white border-b border-gray-50 hover:bg-gray-50">
+        <tr class="bg-white border-b border-gray-50 hover:bg-gray-50 transition-colors">
           <td class="px-6 py-4 font-semibold text-gray-900">${escapeHtml(ticket.category)}</td>
-          <td class="px-6 py-4 max-w-xs truncate">${escapeHtml(ticket.detail)}</td>
+          <td class="px-6 py-4 max-w-xs truncate" title="${escapeHtml(ticket.detail)}">${escapeHtml(ticket.detail)}</td>
           <td class="px-6 py-4">ม.${ticket.reporter_grade}/${ticket.reporter_room}</td>
-          <td class="px-6 py-4">${statusMap[ticket.status] || ticket.status}</td>
+          <td class="px-6 py-4">
+            <!-- Dropdown สำหรับเปลี่ยนสถานะ -->
+            <select onchange="updateTicketStatus('${ticket.id}', this.value)" 
+              class="text-xs font-bold px-3 py-1.5 rounded-lg border outline-none cursor-pointer transition-all
+              ${ticket.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200' : 
+                ticket.status === 'processing' ? 'bg-blue-50 text-blue-700 border-blue-200' : 
+                'bg-emerald-50 text-emerald-700 border-emerald-200'}">
+              <option value="pending" ${ticket.status === 'pending' ? 'selected' : ''}>รอดำเนินการ</option>
+              <option value="processing" ${ticket.status === 'processing' ? 'selected' : ''}>กำลังดำเนินการ</option>
+              <option value="resolved" ${ticket.status === 'resolved' ? 'selected' : ''}>เสร็จสิ้น</option>
+            </select>
+          </td>
         </tr>
       `).join('');
     }
+
+    // 🔄 ฟังก์ชันอัปเดตข้อมูลสถานะขึ้น Supabase
+    window.updateTicketStatus = async function(ticketId, newStatus) {
+      const { error } = await supabase
+        .from('sos_tickets')
+        .update({ status: newStatus })
+        .eq('id', ticketId);
+
+      if (error) {
+        alert('อัปเดตสถานะไม่สำเร็จ: ' + error.message);
+      } else {
+        // อัปเดตสำเร็จ รีเฟรชตารางและกราฟ
+        fetchDashboardData(); 
+      }
+    };
 
     // คำนวณ KPI และพล็อตกราฟ Chart.js
     function calculateStatsAndChart(tickets) {

@@ -63,13 +63,6 @@
             border-color: #991b1b !important;
             outline: none;
         }
-
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen text-slate-800 pb-12">
@@ -84,6 +77,7 @@
     <div id="auth-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
         <div class="bg-white border border-slate-100 p-8 md:p-10 rounded-3xl shadow-2xl w-[420px] max-w-full">
             <div class="text-center mb-6">
+                <!-- ตราโรงเรียน -->
                 <div class="w-20 h-20 mx-auto mb-2 flex items-center justify-center bg-slate-100 rounded-full text-slate-300 text-3xl">
                     <i class="fa-solid fa-school"></i>
                 </div>
@@ -265,8 +259,15 @@
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">แนบรูปภาพประกอบ (ถ้ามี)</label>
-                            <input type="file" id="sos_image" accept="image/jpeg, image/png, image/webp" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:border-red-800 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-red-100 file:text-red-800 hover:file:bg-red-200">
+                            <input type="file" id="sos_image" accept="image/jpeg, image/png, image/webp" onchange="previewSOSImage(event)" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:border-red-800 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-red-100 file:text-red-800 hover:file:bg-red-200">
                             <p class="text-[10px] text-slate-400 mt-1">* รองรับไฟล์ JPG, PNG หรือ WEBP ขนาดไม่เกิน 5MB</p>
+                            <!-- ส่วนแสดงตัวอย่างรูปภาพก่อนส่ง -->
+                            <div id="sos_image_preview_container" class="hidden mt-3 relative inline-block">
+                                <img id="sos_image_preview" src="" class="h-24 w-24 object-cover rounded-xl border-2 border-slate-200 shadow-sm">
+                                <button type="button" onclick="clearSOSImage()" class="absolute -top-2 -right-2 bg-slate-800 hover:bg-slate-900 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md transition-colors">
+                                    <i class="fa-solid fa-times"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <button id="sos_submit_btn" type="submit" class="w-full bg-red-800 text-white font-bold py-3.5 rounded-xl text-sm shadow-lg shadow-red-900/20 hover:bg-red-900 transition-all flex justify-center items-center gap-2">
@@ -332,6 +333,9 @@
             }
         }
 
+        // ==================================================
+        // 🔐 ระบบ Login & ตรวจสอบสิทธิ์ (แสดงปุ่ม Admin)
+        // ==================================================
         async function loginWithStudentID(e) {
             e.preventDefault();
             const inputID = document.getElementById('login_student_id').value.trim();
@@ -440,6 +444,9 @@
             }
         }
 
+        // ==================================================
+        // 🖼️ ระบบ AVATAR
+        // ==================================================
         let selectedAvatarFile = null;
 
         function updateNavbarAvatar(avatarUrl) {
@@ -472,7 +479,7 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            const MAX_SIZE = 3 * 1024 * 1024; // 3MB
+            const MAX_SIZE = 3 * 1024 * 1024;
             if (file.size > MAX_SIZE) {
                 showToast('ไฟล์รูปใหญ่เกิน 3MB กรุณาเลือกรูปอื่น', 'error');
                 event.target.value = '';
@@ -551,6 +558,9 @@
             window.location.reload();
         }
 
+        // ==================================================
+        // 📥 FETCH DATA (POSTS, POLLS, IDEAS)
+        // ==================================================
         async function fetchPRPosts() {
             const container = document.getElementById('pr-posts-container');
             const { data: posts, error } = await supabaseClient.from('pr_posts').select('*').order('created_at', { ascending: false });
@@ -622,15 +632,46 @@
             container.innerHTML = '';
             ideas.forEach((idea, i) => {
                 container.innerHTML += `
-                    <div class="card-lift flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl enter-item" style="animation-delay:${i * 0.08}s">
+                    <div class="card-lift flex items-center justify-between p-4 bg-white border border-slate-100 shadow-sm rounded-2xl enter-item" style="animation-delay:${i * 0.08}s">
                         <p class="text-sm font-medium text-slate-800 pr-4">${escapeHTML(idea.title)}</p>
-                        <button class="bg-white text-slate-600 hover:text-slate-900 border border-slate-200 text-xs font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 transition-colors shrink-0 shadow-sm">
+                        <button class="bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200 text-xs font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 transition-colors shrink-0 shadow-sm">
                             <i class="fa-solid fa-caret-up text-amber-500"></i> ${idea.votes || 0}
                         </button>
                     </div>`;
             });
         }
 
+        // ==================================================
+        // 📷 SOS IMAGE PREVIEW LOGIC
+        // ==================================================
+        function previewSOSImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+            if (file.size > MAX_SIZE) {
+                showToast('ไฟล์รูปใหญ่เกิน 5MB', 'error');
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('sos_image_preview').src = e.target.result;
+                document.getElementById('sos_image_preview_container').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearSOSImage() {
+            document.getElementById('sos_image').value = '';
+            document.getElementById('sos_image_preview_container').classList.add('hidden');
+            document.getElementById('sos_image_preview').src = '';
+        }
+
+        // ==================================================
+        // 📤 FORM SUBMISSIONS (SOS & IDEAS)
+        // ==================================================
         async function submitSOS(e) {
             e.preventDefault();
             const btn = document.getElementById('sos_submit_btn');
@@ -674,14 +715,6 @@
                 let imagePath = null;
 
                 if (file) {
-                    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-                    if (file.size > MAX_SIZE) {
-                        showToast('ไฟล์รูปใหญ่เกิน 5MB', 'error');
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งเรื่องร้องเรียน';
-                        return;
-                    }
-
                     showToast('กำลังอัปโหลดรูปภาพ...', 'loading', 0);
                     const fileExt = file.name.split('.').pop();
                     const fileName = `${session.user.id}/${Date.now()}.${fileExt}`;
@@ -709,7 +742,7 @@
 
                 showToast('ส่งเรื่องร้องเรียนเรียบร้อยแล้ว ทีมสภาฯ จะเข้าตรวจสอบให้เร็วที่สุดครับ!', 'success');
                 document.getElementById('sos_detail').value = '';
-                document.getElementById('sos_image').value = '';
+                clearSOSImage(); // ล้างรูปภาพพรีวิวหลังส่งเสร็จ
             } catch (err) {
                 console.error('submitSOS error:', err);
                 showToast('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง', 'error');
@@ -726,13 +759,34 @@
 
             const { error } = await supabaseClient.from('student_ideas').insert([{ title, votes: 1, is_approved: false }]);
             if (!error) {
-                showToast('💡 เสนอไอเดียสำเร็จแล้ว! รอการตรวจสอบความเหมาะสมจากสภาฯ ครับ', 'success');
+                showToast('💡 เสนอไอเดียสำเร็จแล้ว! รอสภาฯ อนุมัติการแสดงผลครับ', 'success');
                 document.getElementById('idea_title').value = '';
+                
+                // Optimistic UI: แสดงไอเดียที่เพิ่งพิมพ์ไปในรายการทันที พร้อมป้ายสีเหลือง "รออนุมัติ"
+                const container = document.getElementById('ideas-container');
+                if (container.innerHTML.includes('ยังไม่มีไอเดียเสนอแนะ')) {
+                    container.innerHTML = '';
+                }
+                const tempHTML = `
+                    <div class="card-lift flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-2xl enter-item">
+                        <p class="text-sm font-medium text-amber-900 pr-4">
+                            ${escapeHTML(title)} 
+                            <span class="inline-block ml-2 text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">รออนุมัติ</span>
+                        </p>
+                        <button disabled class="bg-white/50 text-amber-400 border border-amber-200 text-xs font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 shrink-0">
+                            <i class="fa-solid fa-caret-up"></i> 1
+                        </button>
+                    </div>`;
+                container.insertAdjacentHTML('afterbegin', tempHTML);
+
             } else {
                 showToast('เกิดข้อผิดพลาดในการส่งข้อมูล', 'error');
             }
         }
 
+        // ==================================================
+        // ⚙️ INITIALIZATION
+        // ==================================================
         supabaseClient.auth.onAuthStateChange((event, session) => {
             checkUserSessionAndConsent();
         });

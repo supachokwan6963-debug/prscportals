@@ -1,77 +1,339 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบจัดการเรื่องร้องเรียนสภานักเรียน | PRSC Admin</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@500;600;700&display=swap" rel="stylesheet">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        prsc: { red: '#D32F2F', navy: '#0B132B', light: '#F8FAFC' }
-                    },
-                    fontFamily: {
-                        sans: ['"IBM Plex Sans Thai"', 'sans-serif'],
-                        heading: ['"Prompt"', '"IBM Plex Sans Thai"', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PRSC Portal — ระบบจัดการหลังบ้านแอดมิน</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Chart.js สำหรับทำกราฟแดชบอร์ด -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased font-sans">
+<body class="bg-gray-50 text-gray-800 antialiased font-sans">
 
-    <header class="bg-prsc-navy text-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-prsc-red rounded-full flex items-center justify-center font-bold text-md font-heading">A</div>
-                <span class="font-bold text-md font-heading">PRSC: Admin Portal</span>
-            </div>
-            <div class="flex items-center gap-4">
-                <span id="admin-email" class="text-xs text-slate-300 font-medium"></span>
-                <a href="index.html" class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg font-medium transition shadow">
-                    <i class="fa-solid fa-arrow-left mr-1"></i> กลับหน้าหลัก
-                </a>
-            </div>
+  <!-- ========================================== -->
+  <!-- 1. หน้า LOGIN VIEW                         -->
+  <!-- ========================================== -->
+  <div id="login-view" class="flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+    <div class="w-full max-w-md space-y-8 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+      <div class="text-center">
+        <h2 class="mt-6 text-3xl font-extrabold tracking-tight text-gray-900">PRSC Admin Portal</h2>
+        <p class="mt-2 text-sm text-gray-600">สำหรับสภานักเรียน ครูที่ปรึกษา และหัวหน้าห้อง</p>
+      </div>
+      
+      <form id="login-form" class="mt-8 space-y-6">
+        <div class="space-y-4 rounded-md">
+          <div>
+            <label for="email-address" class="block text-sm font-medium text-gray-700 mb-1">อีเมลแอดมิน (@piriyalai.ac.th)</label>
+            <input id="email-address" name="email" type="email" autocomplete="email" required 
+              class="relative block w-full px-3 py-2.5 border border-gray-300 rounded-xl placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" 
+              placeholder="example@piriyalai.ac.th">
+          </div>
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required 
+              class="relative block w-full px-3 py-2.5 border border-gray-300 rounded-xl placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" 
+              placeholder="••••••••">
+          </div>
         </div>
+
+        <div>
+          <button type="submit" id="btn-login"
+            class="group relative flex w-full justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
+            เข้าสู่ระบบแอดมิน
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 2. หน้า DASHBOARD VIEW (ซ่อนไว้เริ่มต้น)      -->
+  <!-- ========================================== -->
+  <div id="dashboard-view" class="hidden min-h-screen flex flex-col">
+    <!-- Top Navbar -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <span class="font-bold text-xl tracking-tight text-blue-600">PRSC Backend</span>
+          <span id="badge-role" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">Loading...</span>
+        </div>
+        <div class="flex items-center space-x-4">
+          <span id="admin-name" class="text-sm font-medium text-gray-700">แอดมิน</span>
+          <button id="btn-logout" class="text-xs font-medium text-red-600 hover:text-red-800 px-3 py-1.5 border border-red-200 rounded-lg hover:bg-red-50 transition">
+            ออกจากระบบ
+          </button>
+        </div>
+      </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <div>
-                <h1 class="text-2xl sm:text-3xl font-bold text-prsc-navy font-heading">กล่องรับเรื่องร้องเรียน (The Hive)</h1>
-                <p class="text-slate-500 text-sm mt-1">อัปเดตและติดตามปัญหาจากเพื่อน ๆ นักเรียนพิริยาลัย</p>
-            </div>
-            <div class="flex gap-2 w-full md:w-auto">
-                <select id="filter-status" class="bg-white border border-slate-300 rounded-xl px-4 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-prsc-red">
-                    <option value="all">ทั้งหมด</option>
-                    <option value="pending">🟡 รอดำเนินการ</option>
-                    <option value="ongoing">🔵 กำลังประสานงาน</option>
-                    <option value="solved">🟢 แก้ไขเสร็จสิ้น</option>
-                </select>
-            </div>
+    <!-- Main Content Context -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      
+      <!-- Banner ต้อนรับตามระดับสิทธิ์ -->
+      <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs">
+        <h1 class="text-2xl font-bold text-gray-900" id="welcome-title">ยินดีต้อนรับสู่ระบบหลังบ้าน</h1>
+        <p class="text-gray-500 text-sm mt-1" id="scope-description">กำลังดึงข้อมูลขอบเขตสิทธิ์ของคุณ...</p>
+      </div>
+
+      <!-- สรุปตัวเลขตามสิทธิ์ (KPI Widgets) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs">
+          <p class="text-sm font-medium text-gray-400 uppercase tracking-wider">เรื่องร้องเรียนทั้งหมด</p>
+          <p class="text-3xl font-extrabold text-gray-900 mt-2" id="stat-total">0</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs">
+          <p class="text-sm font-medium text-gray-400 uppercase tracking-wider">กำลังดำเนินการ</p>
+          <p class="text-3xl font-extrabold text-amber-500 mt-2" id="stat-pending">0</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs">
+          <p class="text-sm font-medium text-gray-400 uppercase tracking-wider">เสร็จสิ้นแล้ว</p>
+          <p class="text-3xl font-extrabold text-emerald-500 mt-2" id="stat-resolved">0</p>
+        </div>
+      </div>
+
+      <!-- โซนกราฟและการจัดการ -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- ฝั่งซ้าย: ตารางรายการแจ้งเหตุ SOS -->
+        <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="font-bold text-gray-900 text-lg">กล่องข้อความร้องเรียน (SOS Help Me)</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-gray-500">
+              <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th class="px-6 py-3">หมวดหมู่</th>
+                  <th class="px-6 py-3">รายละเอียด</th>
+                  <th class="px-6 py-3">ระดับ/ห้อง</th>
+                  <th class="px-6 py-3">สถานะ</th>
+                </tr>
+              </thead>
+              <tbody id="tickets-table-body">
+                <tr>
+                  <td colspan="4" class="px-6 py-4 text-center text-gray-400">กำลังโหลดข้อร้องเรียนตาม Scope...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div id="complaints-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div class="col-span-full py-20 text-center text-slate-400">
-                <i class="fa-solid fa-spinner fa-spin text-3xl mb-3 text-prsc-red"></i>
-                <p class="text-sm font-medium">กำลังเชื่อมต่อรังผึ้งเพื่อดึงข้อมูล...</p>
+        <!-- ฝั่งขวา: กราฟสถิติสถานะ หรือไอเดียรออนุมัติ -->
+        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-gray-900 text-lg mb-4">สัดส่วนความคืบหน้า</h3>
+            <div class="relative w-full aspect-square max-w-[240px] mx-auto">
+              <canvas id="chartStatus"></canvas>
             </div>
+          </div>
+          <div id="extra-panel" class="mt-6 pt-6 border-t border-gray-100 text-sm text-gray-500">
+            <!-- ส่วนข้อมูลเสริมสำหรับ President -->
+          </div>
         </div>
+      </div>
     </main>
+  </div>
 
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 max-w-xs w-full pointer-events-none"></div>
+  <!-- ========================================== -->
+  <!-- 3. LOGIC & SUPABASE INTEGRATION            -->
+  <!-- ========================================== -->
+  <script>
+    // เปลี่ยนค่าพวกนี้ให้ตรงกับโปรเจกต์ Supabase ของคุณ
+    const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL"; 
+    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY"; 
+    
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    <script type="module" src="js/firebase-config.js"></script>
-    <script type="module" src="js/admin.js"></script>
+    // DOM Elements
+    const loginView = document.getElementById('login-view');
+    const dashboardView = document.getElementById('dashboard-view');
+    const loginForm = document.getElementById('login-form');
+    const badgeRole = document.getElementById('badge-role');
+    const adminName = document.getElementById('admin-name');
+    const welcomeTitle = document.getElementById('welcome-title');
+    const scopeDescription = document.getElementById('scope-description');
+    const ticketsTableBody = document.getElementById('tickets-table-body');
+    const extraPanel = document.getElementById('extra-panel');
+
+    let currentAdmin = null;
+    let statusChart = null;
+
+    // ตรวจสอบ Session เมื่อเปิดหน้าเว็บ
+    window.addEventListener('DOMContentLoaded', async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        checkAdminRole(session.user);
+      }
+    });
+
+    // Event ล็อกอิน
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = e.target.email.value;
+      const password = e.target.password.value;
+      const btnLogin = document.getElementById('btn-login');
+
+      btnLogin.innerText = "กำลังตรวจสอบสิทธิ์...";
+      btnLogin.disabled = true;
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        alert("เข้าสู่ระบบไม่สำเร็จ: " + error.message);
+        btnLogin.innerText = "เข้าสู่ระบบแอดมิน";
+        btnLogin.disabled = false;
+      } else {
+        checkAdminRole(data.user);
+      }
+    });
+
+    // ดึงและตรวจ Role แอดมิน
+    async function checkAdminRole(user) {
+      const { data: admin, error } = await supabase.from('admins')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error || !admin) {
+        alert("❌ บัญชีนี้ไม่มีสิทธิ์การเข้าถึงระบบหลังบ้าน Admin");
+        await supabase.auth.signOut();
+        location.reload();
+        return;
+      }
+
+      currentAdmin = admin;
+      showDashboardView();
+    }
+
+    // สลับ View มาหน้า Dashboard และดึงข้อมูลมาแสดงผล
+    function showDashboardView() {
+      loginView.classList.add('hidden');
+      dashboardView.classList.remove('hidden');
+
+      // ตกแต่งส่วนหัวข้อตาม Role
+      adminName.innerText = currentAdmin.display_name || currentAdmin.email;
+      badgeRole.innerText = currentAdmin.role.toUpperCase();
+
+      const rolesThai = { president: "สภานักเรียน", level_head: "หัวหน้าระดับชั้น", class_rep: "หัวหน้าห้อง" };
+      welcomeTitle.innerText = `ระบบแอดมิน: ฝ่าย${rolesThai[currentAdmin.role]}`;
+
+      if (currentAdmin.role === 'president') {
+        scopeDescription.innerText = "สิทธิ์ระดับสูงสุด: เข้าถึงข้อมูลทุกระดับชั้นและทุกห้องเรียน";
+        badgeRole.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800";
+      } else if (currentAdmin.role === 'level_head') {
+        scopeDescription.innerText = `สิทธิ์เฉพาะดูแลระดับชั้น: มัธยมศึกษาปีที่ ${currentAdmin.scope_grade}`;
+        badgeRole.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800";
+      } else {
+        scopeDescription.innerText = `สิทธิ์จำกัดเฉพาะห้อง: ม.${currentAdmin.scope_grade}/${currentAdmin.scope_room}`;
+        badgeRole.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800";
+      }
+
+      // ดึงข้อมูลจริงมาทำ Dashboard
+      fetchDashboardData();
+    }
+
+    // Query ข้อมูลตามขอบเขต RLS ที่เซ็ตไว้
+    async function fetchDashboardData() {
+      // Supabase RLS คุมสิทธิ์ชั้นข้อมูลไว้แล้วที่ตารางตาม SQL Script
+      const { data: tickets, error } = await supabase
+        .from('sos_tickets')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        ticketsTableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-red-500">โหลดข้อมูลล้มเหลว: ${error.message}</td></tr>`;
+        return;
+      }
+
+      renderTicketsTable(tickets);
+      calculateStatsAndChart(tickets);
+      renderExtraControls();
+    }
+
+    // เรนเดอร์ตารางตั๋วร้องเรียน
+    function renderTicketsTable(tickets) {
+      if (tickets.length === 0) {
+        ticketsTableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-gray-400">ยังไม่มีรายการแจ้งเรื่องร้องเรียนใน Scope ของคุณ</td></tr>`;
+        return;
+      }
+
+      const statusMap = {
+        'pending': '<span class="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-sm">รอดำเนินการ</span>',
+        'processing': '<span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-sm">กำลังดำเนินการ</span>',
+        'resolved': '<span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-1 rounded-sm">เสร็จสิ้น</span>'
+      };
+
+      ticketsTableBody.innerHTML = tickets.map(ticket => `
+        <tr class="bg-white border-b border-gray-50 hover:bg-gray-50">
+          <td class="px-6 py-4 font-semibold text-gray-900">${escapeHtml(ticket.category)}</td>
+          <td class="px-6 py-4 max-w-xs truncate">${escapeHtml(ticket.detail)}</td>
+          <td class="px-6 py-4">ม.${ticket.reporter_grade}/${ticket.reporter_room}</td>
+          <td class="px-6 py-4">${statusMap[ticket.status] || ticket.status}</td>
+        </tr>
+      `).join('');
+    }
+
+    // คำนวณ KPI และพล็อตกราฟ Chart.js
+    function calculateStatsAndChart(tickets) {
+      const total = tickets.length;
+      const pending = tickets.filter(t => t.status === 'pending' || t.status === 'processing').length;
+      const resolved = tickets.filter(t => t.status === 'resolved').length;
+
+      document.getElementById('stat-total').innerText = total;
+      document.getElementById('stat-pending').innerText = pending;
+      document.getElementById('stat-resolved').innerText = resolved;
+
+      // วาดหรือรีเฟรช Doughnut Chart
+      const ctx = document.getElementById('chartStatus').getContext('2d');
+      if (statusChart) statusChart.destroy();
+
+      statusChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['ค้างดำเนินการ', 'เสร็จสิ้นแล้ว'],
+          datasets: [{
+            data: [pending, resolved],
+            backgroundColor: ['#f59e0b', '#10b981'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    // แสดงสิทธิ์เพิ่มเติมเฉพาะตำแหน่งใหญ่ (เช่น สภานักเรียนคุมปุ่มอนุมัติไอเดียได้)
+    function renderExtraControls() {
+      if (currentAdmin.role === 'president') {
+        extraPanel.innerHTML = `
+          <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+            <h4 class="font-semibold text-blue-900 mb-1">💡 ฟีเจอร์เฉพาะสภานักเรียน</h4>
+            <p class="text-xs text-blue-700">คุณสามารถเข้าไปอนุมัติเปิดโหวต Student Voice หรือจัดการสิทธิ์การใช้งานของแอดมินคนอื่นผ่านระบบนี้ได้</p>
+          </div>
+        `;
+      } else {
+        extraPanel.innerHTML = `
+          <p class="text-xs text-center text-gray-400">ระบบจำกัดการแสดงผลเฉพาะ ห้อง/ชั้นเรียน ของคุณโดยสมบูรณ์ตามความปลอดภัยสูงสุด</p>
+        `;
+      }
+    }
+
+    // Event ปุ่มออกจากระบบ
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      location.reload();
+    });
+
+    // Helper ป้องกัน XSS
+    function escapeHtml(str) {
+      if(!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+  </script>
 </body>
 </html>

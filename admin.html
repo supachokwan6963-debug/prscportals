@@ -1,359 +1,669 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PRSC Portal — ระบบจัดการหลังบ้านแอดมิน</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  <!-- Supabase JS Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Chart.js สำหรับทำกราฟแดชบอร์ด -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="bg-gray-50 text-gray-800 antialiased font-sans">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRSC Admin - สภานักเรียนโรงเรียนพิริยาลัยจังหวัดแพร่</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@100..700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Anuphan', sans-serif; background-color: #f8fafc; color: #1e293b; }
 
-  <!-- ========================================== -->
-  <!-- 1. หน้า LOGIN VIEW                         -->
-  <!-- ========================================== -->
-  <div id="login-view" class="flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-    <div class="w-full max-w-md space-y-8 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-      <div class="text-center">
-        <h2 class="mt-6 text-3xl font-extrabold tracking-tight text-gray-900">PRSC Admin Portal</h2>
-        <p class="mt-2 text-sm text-gray-600">สำหรับสภานักเรียน ครูที่ปรึกษา และหัวหน้าห้อง</p>
-      </div>
-      
-      <form id="login-form" class="mt-8 space-y-6">
-        <div class="space-y-4 rounded-md">
-          <div>
-            <label for="email-address" class="block text-sm font-medium text-gray-700 mb-1">อีเมลแอดมิน (@piriyalai.ac.th)</label>
-            <input id="email-address" name="email" type="email" autocomplete="email" required 
-              class="relative block w-full px-3 py-2.5 border border-gray-300 rounded-xl placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" 
-              placeholder="example@piriyalai.ac.th">
-          </div>
-          <div>
-            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน</label>
-            <input id="password" name="password" type="password" autocomplete="current-password" required 
-              class="relative block w-full px-3 py-2.5 border border-gray-300 rounded-xl placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" 
-              placeholder="••••••••">
-          </div>
-        </div>
-
-        <div>
-          <button type="submit" id="btn-login"
-            class="group relative flex w-full justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
-            เข้าสู่ระบบแอดมิน
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- 2. หน้า DASHBOARD VIEW (ซ่อนไว้เริ่มต้น)      -->
-  <!-- ========================================== -->
-  <div id="dashboard-view" class="hidden min-h-screen flex flex-col">
-    <!-- Top Navbar -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-10">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-          <span class="font-bold text-xl tracking-tight text-blue-600">PRSC Backend</span>
-          <span id="badge-role" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">Loading...</span>
-        </div>
-        <div class="flex items-center space-x-4">
-          <span id="admin-name" class="text-sm font-medium text-gray-700">แอดมิน</span>
-          <button id="btn-logout" class="text-xs font-medium text-red-600 hover:text-red-800 px-3 py-1.5 border border-red-200 rounded-lg hover:bg-red-50 transition">
-            ออกจากระบบ
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <!-- Main Content Context -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      
-      <!-- Banner ต้อนรับตามระดับสิทธิ์ -->
-      <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs">
-        <h1 class="text-2xl font-bold text-gray-900" id="welcome-title">ยินดีต้อนรับสู่ระบบหลังบ้าน</h1>
-        <p class="text-gray-500 text-sm mt-1" id="scope-description">กำลังดึงข้อมูลขอบเขตสิทธิ์ของคุณ...</p>
-      </div>
-
-      <!-- สรุปตัวเลขตามสิทธิ์ (KPI Widgets) -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs">
-          <p class="text-sm font-medium text-gray-400 uppercase tracking-wider">เรื่องร้องเรียนทั้งหมด</p>
-          <p class="text-3xl font-extrabold text-gray-900 mt-2" id="stat-total">0</p>
-        </div>
-        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs">
-          <p class="text-sm font-medium text-gray-400 uppercase tracking-wider">กำลังดำเนินการ</p>
-          <p class="text-3xl font-extrabold text-amber-500 mt-2" id="stat-pending">0</p>
-        </div>
-        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs">
-          <p class="text-sm font-medium text-gray-400 uppercase tracking-wider">เสร็จสิ้นแล้ว</p>
-          <p class="text-3xl font-extrabold text-emerald-500 mt-2" id="stat-resolved">0</p>
-        </div>
-      </div>
-
-      <!-- โซนกราฟและการจัดการ -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- ฝั่งซ้าย: ตารางรายการแจ้งเหตุ SOS -->
-        <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden">
-          <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-bold text-gray-900 text-lg">กล่องข้อความร้องเรียน (SOS Help Me)</h3>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm text-gray-500">
-              <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-100">
-                <tr>
-                  <th class="px-6 py-3">หมวดหมู่</th>
-                  <th class="px-6 py-3">รายละเอียด</th>
-                  <th class="px-6 py-3">ระดับ/ห้อง</th>
-                  <th class="px-6 py-3">สถานะ</th>
-                </tr>
-              </thead>
-              <tbody id="tickets-table-body">
-                <tr>
-                  <td colspan="4" class="px-6 py-4 text-center text-gray-400">กำลังโหลดข้อร้องเรียนตาม Scope...</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- ฝั่งขวา: กราฟสถิติสถานะ หรือไอเดียรออนุมัติ -->
-        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs flex flex-col justify-between">
-          <div>
-            <h3 class="font-bold text-gray-900 text-lg mb-4">สัดส่วนความคืบหน้า</h3>
-            <div class="relative w-full aspect-square max-w-[240px] mx-auto">
-              <canvas id="chartStatus"></canvas>
-            </div>
-          </div>
-          <div id="extra-panel" class="mt-6 pt-6 border-t border-gray-100 text-sm text-gray-500">
-            <!-- ส่วนข้อมูลเสริมสำหรับ President -->
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- 3. LOGIC & SUPABASE INTEGRATION            -->
-  <!-- ========================================== -->
-  <script>
-    // ⚠️ อย่าลืมใส่ URL และ KEY ของโปรเจกต์คุณ ⚠️
-    const SUPABASE_URL = "dkuyxaujvhqanloqcgbh"; 
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdXl4YXVqdmhxYW5sb3FjZ2JoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyODg3OTcsImV4cCI6MjA5OTg2NDc5N30.GR2gCIWtqokqa5YBgXv1H1QsKQlPiDj9UF4i8C7BMmI"; 
-    
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // DOM Elements
-    const loginView = document.getElementById('login-view');
-    const dashboardView = document.getElementById('dashboard-view');
-    const loginForm = document.getElementById('login-form');
-    const badgeRole = document.getElementById('badge-role');
-    const adminName = document.getElementById('admin-name');
-    const welcomeTitle = document.getElementById('welcome-title');
-    const scopeDescription = document.getElementById('scope-description');
-    const ticketsTableBody = document.getElementById('tickets-table-body');
-    const extraPanel = document.getElementById('extra-panel');
-
-    let currentAdmin = null;
-    let statusChart = null;
-
-    // ตรวจสอบ Session เมื่อเปิดหน้าเว็บ
-    window.addEventListener('DOMContentLoaded', async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        checkAdminRole(session.user);
-      }
-    });
-
-    // Event ล็อกอิน
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = e.target.email.value;
-      const password = e.target.password.value;
-      const btnLogin = document.getElementById('btn-login');
-
-      btnLogin.innerText = "กำลังตรวจสอบสิทธิ์...";
-      btnLogin.disabled = true;
-
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-      if (error) {
-        alert("เข้าสู่ระบบไม่สำเร็จ: " + error.message);
-        btnLogin.innerText = "เข้าสู่ระบบแอดมิน";
-        btnLogin.disabled = false;
-      } else {
-        checkAdminRole(data.user);
-      }
-    });
-
-    // ดึงและตรวจ Role แอดมิน
-    async function checkAdminRole(user) {
-      const { data: admin, error } = await supabase.from('admins')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (error || !admin) {
-        alert("❌ บัญชีนี้ไม่มีสิทธิ์การเข้าถึงระบบหลังบ้าน Admin");
-        await supabase.auth.signOut();
-        location.reload();
-        return;
-      }
-
-      currentAdmin = admin;
-      showDashboardView();
-    }
-
-    // สลับ View มาหน้า Dashboard และดึงข้อมูลมาแสดงผล
-    function showDashboardView() {
-      loginView.classList.add('hidden');
-      dashboardView.classList.remove('hidden');
-
-      // ตกแต่งส่วนหัวข้อตาม Role
-      adminName.innerText = currentAdmin.display_name || currentAdmin.email;
-      badgeRole.innerText = currentAdmin.role.toUpperCase();
-
-      const rolesThai = { president: "สภานักเรียน", level_head: "หัวหน้าระดับชั้น", class_rep: "หัวหน้าห้อง" };
-      welcomeTitle.innerText = `ระบบแอดมิน: ฝ่าย${rolesThai[currentAdmin.role]}`;
-
-      if (currentAdmin.role === 'president') {
-        scopeDescription.innerText = "สิทธิ์ระดับสูงสุด: เข้าถึงข้อมูลทุกระดับชั้นและทุกห้องเรียน";
-        badgeRole.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800";
-      } else if (currentAdmin.role === 'level_head') {
-        scopeDescription.innerText = `สิทธิ์เฉพาะดูแลระดับชั้น: มัธยมศึกษาปีที่ ${currentAdmin.scope_grade}`;
-        badgeRole.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800";
-      } else {
-        scopeDescription.innerText = `สิทธิ์จำกัดเฉพาะห้อง: ม.${currentAdmin.scope_grade}/${currentAdmin.scope_room}`;
-        badgeRole.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800";
-      }
-
-      // ดึงข้อมูลจริงมาทำ Dashboard
-      fetchDashboardData();
-    }
-
-    // Query ข้อมูลตามขอบเขต RLS ที่เซ็ตไว้
-    async function fetchDashboardData() {
-      // Supabase RLS คุมสิทธิ์ชั้นข้อมูลไว้แล้วที่ตารางตาม SQL Script
-      const { data: tickets, error } = await supabase
-        .from('sos_tickets')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        ticketsTableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-red-500">โหลดข้อมูลล้มเหลว: ${error.message}</td></tr>`;
-        return;
-      }
-
-      renderTicketsTable(tickets);
-      calculateStatsAndChart(tickets);
-      renderExtraControls();
-    }
-
-    // 🎨 ฟังก์ชันสำหรับวาดตารางและ Dropdown เปลี่ยนสถานะ
-    function renderTicketsTable(tickets) {
-      if (tickets.length === 0) {
-        ticketsTableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-gray-400">ยังไม่มีรายการแจ้งเรื่องร้องเรียนใน Scope ของคุณ</td></tr>`;
-        return;
-      }
-
-      ticketsTableBody.innerHTML = tickets.map(ticket => `
-        <tr class="bg-white border-b border-gray-50 hover:bg-gray-50 transition-colors">
-          <td class="px-6 py-4 font-semibold text-gray-900">${escapeHtml(ticket.category)}</td>
-          <td class="px-6 py-4 max-w-xs truncate" title="${escapeHtml(ticket.detail)}">${escapeHtml(ticket.detail)}</td>
-          <td class="px-6 py-4">ม.${ticket.reporter_grade}/${ticket.reporter_room}</td>
-          <td class="px-6 py-4">
-            <!-- Dropdown สำหรับเปลี่ยนสถานะ -->
-            <select onchange="updateTicketStatus('${ticket.id}', this.value)" 
-              class="text-xs font-bold px-3 py-1.5 rounded-lg border outline-none cursor-pointer transition-all
-              ${ticket.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200' : 
-                ticket.status === 'processing' ? 'bg-blue-50 text-blue-700 border-blue-200' : 
-                'bg-emerald-50 text-emerald-700 border-emerald-200'}">
-              <option value="pending" ${ticket.status === 'pending' ? 'selected' : ''}>รอดำเนินการ</option>
-              <option value="processing" ${ticket.status === 'processing' ? 'selected' : ''}>กำลังดำเนินการ</option>
-              <option value="resolved" ${ticket.status === 'resolved' ? 'selected' : ''}>เสร็จสิ้น</option>
-            </select>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    // 🔄 ฟังก์ชันอัปเดตข้อมูลสถานะขึ้น Supabase
-    window.updateTicketStatus = async function(ticketId, newStatus) {
-      const { error } = await supabase
-        .from('sos_tickets')
-        .update({ status: newStatus })
-        .eq('id', ticketId);
-
-      if (error) {
-        alert('อัปเดตสถานะไม่สำเร็จ: ' + error.message);
-      } else {
-        // อัปเดตสำเร็จ รีเฟรชตารางและกราฟ
-        fetchDashboardData(); 
-      }
-    };
-
-    // คำนวณ KPI และพล็อตกราฟ Chart.js
-    function calculateStatsAndChart(tickets) {
-      const total = tickets.length;
-      const pending = tickets.filter(t => t.status === 'pending' || t.status === 'processing').length;
-      const resolved = tickets.filter(t => t.status === 'resolved').length;
-
-      document.getElementById('stat-total').innerText = total;
-      document.getElementById('stat-pending').innerText = pending;
-      document.getElementById('stat-resolved').innerText = resolved;
-
-      // วาดหรือรีเฟรช Doughnut Chart
-      const ctx = document.getElementById('chartStatus').getContext('2d');
-      if (statusChart) statusChart.destroy();
-
-      statusChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: ['ค้างดำเนินการ', 'เสร็จสิ้นแล้ว'],
-          datasets: [{
-            data: [pending, resolved],
-            backgroundColor: ['#f59e0b', '#10b981'],
-            borderWidth: 0
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } }
+        .enter-item {
+            opacity: 0;
+            animation: livelySlideUp 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
         }
-      });
-    }
+        @keyframes livelySlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
 
-    // แสดงสิทธิ์เพิ่มเติมเฉพาะตำแหน่งใหญ่ (เช่น สภานักเรียนคุมปุ่มอนุมัติไอเดียได้)
-    function renderExtraControls() {
-      if (currentAdmin.role === 'president') {
-        extraPanel.innerHTML = `
-          <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
-            <h4 class="font-semibold text-blue-900 mb-1">💡 ฟีเจอร์เฉพาะสภานักเรียน</h4>
-            <p class="text-xs text-blue-700">คุณสามารถเข้าไปอนุมัติเปิดโหวต Student Voice หรือจัดการสิทธิ์การใช้งานของแอดมินคนอื่นผ่านระบบนี้ได้</p>
-          </div>
-        `;
-      } else {
-        extraPanel.innerHTML = `
-          <p class="text-xs text-center text-gray-400">ระบบจำกัดการแสดงผลเฉพาะ ห้อง/ชั้นเรียน ของคุณโดยสมบูรณ์ตามความปลอดภัยสูงสุด</p>
-        `;
-      }
-    }
+        button, a { transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.1s ease, background 0.2s ease; }
+        button:active { transform: scale(0.96); }
 
-    // Event ปุ่มออกจากระบบ
-    document.getElementById('btn-logout').addEventListener('click', async () => {
-      await supabase.auth.signOut();
-      location.reload();
-    });
+        input:focus, textarea:focus, select:focus {
+            box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.15);
+            border-color: #991b1b !important;
+            outline: none;
+        }
 
-    // Helper ป้องกัน XSS
-    function escapeHtml(str) {
-      if(!str) return '';
-      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    }
-  </script>
+        #auth-overlay, #denied-overlay { transition: opacity 0.3s ease-out; }
+        #auth-overlay:not(.hidden) > div, #denied-overlay:not(.hidden) > div {
+            animation: dramaticZoom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        @keyframes dramaticZoom {
+            from { opacity: 0; transform: scale(0.9) translateY(15px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes toastPopIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes toastPopOut {
+            from { opacity: 1; transform: translateY(0) scale(1); }
+            to   { opacity: 0; transform: translateY(20px) scale(0.95); }
+        }
+
+        .tab-btn.active { background: #991b1b; color: #fff; box-shadow: 0 8px 20px rgba(153,27,27,0.25); }
+        .tab-btn { color: #475569; }
+
+        .status-pill { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: .05em; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-in_progress { background: #dbeafe; color: #1e40af; }
+        .status-resolved { background: #d1fae5; color: #065f46; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+
+    <div id="app-toast" class="fixed bottom-6 right-6 md:bottom-10 md:right-10 p-4 pr-6 rounded-2xl shadow-xl z-[200] flex items-center gap-3 max-w-sm hidden transition-all text-white">
+        <div id="app-toast-icon" class="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-white/20"></div>
+        <span id="app-toast-message" class="text-sm font-semibold tracking-wide"></span>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="auth-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
+        <div class="bg-white border border-slate-100 p-8 md:p-10 rounded-3xl shadow-2xl w-[420px] max-w-full">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 mx-auto mb-2 flex items-center justify-center bg-red-50 rounded-full text-red-800 text-2xl">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-900 tracking-tight">PRSC ADMIN</h2>
+                <p class="text-sm text-slate-500 mt-1">ระบบจัดการหลังบ้าน สภานักเรียน</p>
+            </div>
+            <form onsubmit="loginAdmin(event)" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">อีเมลแอดมิน</label>
+                    <input type="text" id="login_email" required placeholder="admin@piriyalai.ac.th" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 transition-all text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">รหัสผ่าน</label>
+                    <input type="password" id="login_password" required placeholder="รหัสผ่าน" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 transition-all text-sm">
+                </div>
+                <button type="submit" class="w-full bg-red-800 hover:bg-red-900 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-red-900/20 transition-all text-sm mt-2">
+                    ลงชื่อเข้าใช้
+                </button>
+                <a href="index.html" class="block text-center text-xs text-slate-400 hover:text-slate-600 mt-2">&larr; กลับหน้า Portal นักเรียน</a>
+            </form>
+        </div>
+    </div>
+
+    <!-- NOT ADMIN -->
+    <div id="denied-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
+        <div class="bg-white border border-slate-100 p-8 md:p-10 rounded-3xl shadow-2xl w-[420px] max-w-full text-center">
+            <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-red-50 rounded-full text-red-800 text-2xl">
+                <i class="fa-solid fa-ban"></i>
+            </div>
+            <h2 class="text-xl font-bold text-slate-900 tracking-tight">ไม่มีสิทธิ์เข้าถึง</h2>
+            <p class="text-sm text-slate-500 mt-2 mb-6">บัญชีนี้ไม่ได้อยู่ในรายชื่อแอดมินระบบ PRSC</p>
+            <button onclick="logoutAdmin()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium py-3 px-4 rounded-xl transition-all text-sm">ออกจากระบบ</button>
+        </div>
+    </div>
+
+    <!-- APP -->
+    <div id="app-root" class="hidden">
+        <nav class="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-red-800 rounded-full flex items-center justify-center text-white">
+                        <i class="fa-solid fa-shield-halved text-sm"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-lg tracking-tight text-slate-900 block leading-none">PRSC ADMIN</span>
+                        <span class="text-[11px] text-slate-400">ระบบจัดการหลังบ้าน</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="index.html" class="text-sm text-slate-500 hover:text-slate-800 px-3 py-2 rounded-xl font-medium transition-all hidden sm:inline-flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-left"></i> Portal นักเรียน
+                    </a>
+                    <span id="admin-display-name" class="text-sm text-slate-500 font-semibold px-3 py-1 bg-slate-100 rounded-full border border-slate-200"></span>
+                    <button onclick="logoutAdmin()" class="text-sm bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900 px-4 py-2 rounded-xl font-medium transition-all">ออกจากระบบ</button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="max-w-7xl mx-auto px-4 mt-8 space-y-8">
+
+            <!-- STATS -->
+            <section id="stats-row" class="grid grid-cols-2 md:grid-cols-4 gap-4 enter-item"></section>
+
+            <!-- TABS -->
+            <div class="flex flex-wrap gap-2 bg-white border border-slate-200 p-2 rounded-2xl shadow-sm enter-item" style="animation-delay:.05s">
+                <button class="tab-btn active font-bold text-sm px-5 py-2.5 rounded-xl transition-all" data-tab="sos" onclick="switchTab('sos')"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>SOS Tickets</button>
+                <button class="tab-btn font-bold text-sm px-5 py-2.5 rounded-xl transition-all" data-tab="ideas" onclick="switchTab('ideas')"><i class="fa-solid fa-lightbulb mr-1.5"></i>Student Voice</button>
+                <button class="tab-btn font-bold text-sm px-5 py-2.5 rounded-xl transition-all" data-tab="polls" onclick="switchTab('polls')"><i class="fa-solid fa-square-poll-vertical mr-1.5"></i>โพล</button>
+                <button class="tab-btn font-bold text-sm px-5 py-2.5 rounded-xl transition-all" data-tab="posts" onclick="switchTab('posts')"><i class="fa-solid fa-bullhorn mr-1.5"></i>ข่าวประชาสัมพันธ์</button>
+            </div>
+
+            <!-- SOS TAB -->
+            <section id="tab-sos" class="tab-panel space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <h2 class="text-lg font-bold text-slate-900">รายการแจ้งปัญหา (SOS)</h2>
+                    <div class="flex gap-2">
+                        <select id="sos_filter_status" onchange="fetchSOSTickets()" class="text-sm bg-white border border-slate-200 rounded-xl px-3 py-2">
+                            <option value="all">ทุกสถานะ</option>
+                            <option value="pending">รอดำเนินการ</option>
+                            <option value="in_progress">กำลังดำเนินการ</option>
+                            <option value="resolved">แก้ไขแล้ว</option>
+                        </select>
+                        <select id="sos_filter_category" onchange="fetchSOSTickets()" class="text-sm bg-white border border-slate-200 rounded-xl px-3 py-2">
+                            <option value="all">ทุกหมวดหมู่</option>
+                            <option value="สถานที่/อาคาร">อาคารสถานที่</option>
+                            <option value="การเรียน/วิชาการ">การเรียน/วิชาการ</option>
+                            <option value="กฎระเบียบ">กฎระเบียบ</option>
+                            <option value="อื่นๆ">อื่นๆ</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="sos-container" class="space-y-3"></div>
+            </section>
+
+            <!-- IDEAS TAB -->
+            <section id="tab-ideas" class="tab-panel space-y-4 hidden">
+                <h2 class="text-lg font-bold text-slate-900">ไอเดียนักเรียน (Student Voice)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-sm font-bold text-amber-700 mb-3"><i class="fa-solid fa-hourglass-half mr-1.5"></i>รออนุมัติ</h3>
+                        <div id="ideas-pending-container" class="space-y-2"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-emerald-700 mb-3"><i class="fa-solid fa-circle-check mr-1.5"></i>อนุมัติแล้ว (แสดงบน Portal)</h3>
+                        <div id="ideas-approved-container" class="space-y-2"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- POLLS TAB -->
+            <section id="tab-polls" class="tab-panel space-y-6 hidden">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-bold text-slate-900">จัดการโพล</h2>
+                    <button onclick="openPollForm()" class="bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold px-4 py-2.5 rounded-xl shadow-md transition-all"><i class="fa-solid fa-plus mr-1.5"></i>สร้างโพลใหม่</button>
+                </div>
+
+                <div id="poll-form-card" class="hidden bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-900 text-sm">สร้างโพลใหม่</h3>
+                    <input type="text" id="new_poll_question" placeholder="คำถามโพล เช่น อยากให้จัดกิจกรรมอะไรเทอมนี้?" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                    <div id="poll-options-inputs" class="space-y-2">
+                        <input type="text" class="poll-opt-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="ตัวเลือกที่ 1">
+                        <input type="text" class="poll-opt-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="ตัวเลือกที่ 2">
+                    </div>
+                    <button onclick="addPollOptionInput()" class="text-xs font-bold text-red-800 hover:text-red-900"><i class="fa-solid fa-plus mr-1"></i>เพิ่มตัวเลือก</button>
+                    <div class="flex gap-3 pt-2">
+                        <button onclick="createPoll()" class="flex-1 bg-red-800 hover:bg-red-900 text-white font-bold py-3 rounded-xl text-sm shadow-md transition-all">บันทึกและเปิดโหวต</button>
+                        <button onclick="closePollForm()" class="px-5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium rounded-xl text-sm transition-all">ยกเลิก</button>
+                    </div>
+                </div>
+
+                <div id="polls-container" class="space-y-4"></div>
+            </section>
+
+            <!-- POSTS TAB -->
+            <section id="tab-posts" class="tab-panel space-y-6 hidden">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-bold text-slate-900">ข่าวประชาสัมพันธ์</h2>
+                    <button onclick="openPostForm()" class="bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold px-4 py-2.5 rounded-xl shadow-md transition-all"><i class="fa-solid fa-plus mr-1.5"></i>เพิ่มข่าวใหม่</button>
+                </div>
+
+                <div id="post-form-card" class="hidden bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-900 text-sm">เพิ่มข่าวประชาสัมพันธ์</h3>
+                    <select id="new_post_category" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <option value="ข่าวทั่วไป">ข่าวทั่วไป</option>
+                        <option value="กิจกรรม">กิจกรรม</option>
+                        <option value="ประกาศ">ประกาศ</option>
+                        <option value="ผลโหวต">ผลโหวต</option>
+                    </select>
+                    <input type="text" id="new_post_title" placeholder="หัวข้อข่าว" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                    <textarea id="new_post_content" rows="4" placeholder="เนื้อหาข่าว" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm resize-none"></textarea>
+                    <div class="flex gap-3 pt-2">
+                        <button onclick="createPost()" class="flex-1 bg-red-800 hover:bg-red-900 text-white font-bold py-3 rounded-xl text-sm shadow-md transition-all">เผยแพร่ข่าว</button>
+                        <button onclick="closePostForm()" class="px-5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium rounded-xl text-sm transition-all">ยกเลิก</button>
+                    </div>
+                </div>
+
+                <div id="posts-container" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- SOS IMAGE LIGHTBOX -->
+    <div id="image-lightbox" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[150] hidden items-center justify-center p-4" onclick="closeLightbox()">
+        <img id="lightbox-img" src="" class="max-w-full max-h-full rounded-2xl shadow-2xl">
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // ⚠️ ใส่ URL และ ANON_KEY จากโปรเจกต์ Supabase เดียวกับ index.html ⚠️
+        const SUPABASE_URL = "YOUR_SUPABASE_URL";
+        const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        let toastTimeout;
+        function showToast(message, type = 'success', duration = 3500) {
+            const toast = document.getElementById('app-toast');
+            const messageSpan = document.getElementById('app-toast-message');
+            const iconDiv = document.getElementById('app-toast-icon');
+            toast.className = 'fixed bottom-6 right-6 md:bottom-10 md:right-10 p-4 pr-6 rounded-2xl shadow-xl z-[200] flex items-center gap-3 max-w-sm transition-all text-white';
+            if (type === 'error') { toast.classList.add('bg-red-800'); iconDiv.innerHTML = '<i class="fa-solid fa-circle-exclamation text-white"></i>'; }
+            else if (type === 'success') { toast.classList.add('bg-emerald-600'); iconDiv.innerHTML = '<i class="fa-solid fa-circle-check text-white"></i>'; }
+            else if (type === 'loading') { toast.classList.add('bg-blue-600'); iconDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-white"></i>'; }
+            messageSpan.textContent = message;
+            toast.classList.remove('hidden');
+            toast.style.animation = 'toastPopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+            clearTimeout(toastTimeout);
+            if (duration > 0) {
+                toastTimeout = setTimeout(() => {
+                    toast.style.animation = 'toastPopOut 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+                    setTimeout(() => toast.classList.add('hidden'), 300);
+                }, duration);
+            }
+        }
+
+        // ==================================================
+        // 🔐 AUTH
+        // ==================================================
+        let currentAdmin = null;
+
+        async function loginAdmin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login_email').value.trim();
+            const password = document.getElementById('login_password').value;
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) {
+                showToast('เข้าสู่ระบบไม่สำเร็จ ตรวจสอบอีเมล/รหัสผ่านอีกครั้ง', 'error');
+            } else {
+                showToast('เข้าสู่ระบบสำเร็จ', 'success');
+            }
+        }
+
+        async function logoutAdmin() {
+            await supabaseClient.auth.signOut();
+            window.location.reload();
+        }
+
+        async function checkAdminSession() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            const authOverlay = document.getElementById('auth-overlay');
+            const deniedOverlay = document.getElementById('denied-overlay');
+            const appRoot = document.getElementById('app-root');
+
+            if (!session) {
+                authOverlay.classList.remove('hidden');
+                deniedOverlay.classList.add('hidden');
+                appRoot.classList.add('hidden');
+                return;
+            }
+
+            const { data: adminData } = await supabaseClient.from('admins').select('*').eq('id', session.user.id).maybeSingle();
+
+            if (!adminData) {
+                authOverlay.classList.add('hidden');
+                deniedOverlay.classList.remove('hidden');
+                appRoot.classList.add('hidden');
+                return;
+            }
+
+            currentAdmin = adminData;
+            authOverlay.classList.add('hidden');
+            deniedOverlay.classList.add('hidden');
+            appRoot.classList.remove('hidden');
+            document.getElementById('admin-display-name').innerHTML = `<i class="fa-solid fa-crown text-amber-500 mr-1"></i> ${escapeHTML(adminData.display_name || 'แอดมิน')}`;
+
+            loadAllData();
+        }
+
+        // ==================================================
+        // 🧭 TABS
+        // ==================================================
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+            document.getElementById('tab-' + tab).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
+        }
+
+        function loadAllData() {
+            fetchStats();
+            fetchSOSTickets();
+            fetchIdeasAdmin();
+            fetchPollsAdmin();
+            fetchPostsAdmin();
+        }
+
+        // ==================================================
+        // 📊 STATS
+        // ==================================================
+        async function fetchStats() {
+            const row = document.getElementById('stats-row');
+            const [sosRes, ideasRes, pollRes, postsRes] = await Promise.all([
+                supabaseClient.from('sos_tickets').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+                supabaseClient.from('student_ideas').select('id', { count: 'exact', head: true }).eq('is_approved', false),
+                supabaseClient.from('polls').select('id', { count: 'exact', head: true }).eq('is_active', true),
+                supabaseClient.from('pr_posts').select('id', { count: 'exact', head: true }),
+            ]);
+
+            const cards = [
+                { label: 'SOS รอดำเนินการ', value: sosRes.count ?? '–', icon: 'fa-triangle-exclamation', color: 'red' },
+                { label: 'ไอเดียรออนุมัติ', value: ideasRes.count ?? '–', icon: 'fa-lightbulb', color: 'amber' },
+                { label: 'โพลที่เปิดอยู่', value: pollRes.count ?? '–', icon: 'fa-square-poll-vertical', color: 'blue' },
+                { label: 'ข่าวทั้งหมด', value: postsRes.count ?? '–', icon: 'fa-bullhorn', color: 'emerald' },
+            ];
+
+            row.innerHTML = cards.map(c => `
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                    <div class="w-11 h-11 rounded-xl bg-${c.color}-100 text-${c.color}-700 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid ${c.icon}"></i>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-extrabold text-slate-900 leading-none">${c.value}</p>
+                        <p class="text-xs text-slate-500 mt-1">${c.label}</p>
+                    </div>
+                </div>`).join('');
+        }
+
+        // ==================================================
+        // 🚨 SOS TICKETS
+        // ==================================================
+        async function fetchSOSTickets() {
+            const container = document.getElementById('sos-container');
+            const statusFilter = document.getElementById('sos_filter_status').value;
+            const categoryFilter = document.getElementById('sos_filter_category').value;
+
+            let query = supabaseClient.from('sos_tickets').select('*').order('created_at', { ascending: false });
+            if (statusFilter !== 'all') query = query.eq('status', statusFilter);
+            if (categoryFilter !== 'all') query = query.eq('category', categoryFilter);
+
+            const { data: tickets, error } = await query;
+
+            if (error || !tickets || tickets.length === 0) {
+                container.innerHTML = `<div class="bg-white rounded-3xl p-10 border border-slate-100 text-center text-slate-400"><i class="fa-solid fa-inbox text-3xl mb-3 opacity-30"></i><p class="text-sm">ไม่มีรายการในหมวดนี้</p></div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            for (const t of tickets) {
+                let imgTag = '';
+                if (t.image_path) {
+                    const { data: signed } = await supabaseClient.storage.from('sos-images').createSignedUrl(t.image_path, 3600);
+                    if (signed?.signedUrl) {
+                        imgTag = `<img src="${signed.signedUrl}" onclick="openLightbox('${signed.signedUrl}')" class="w-16 h-16 rounded-xl object-cover border border-slate-200 cursor-pointer shrink-0">`;
+                    }
+                }
+                container.innerHTML += `
+                    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm enter-item">
+                        <div class="flex items-start gap-4">
+                            ${imgTag}
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap mb-1.5">
+                                    <span class="status-pill status-${t.status}">${statusLabel(t.status)}</span>
+                                    <span class="text-[10px] font-bold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full uppercase tracking-wider">${escapeHTML(t.category || '-')}</span>
+                                    ${t.reporter_grade ? `<span class="text-[10px] text-slate-400">ม.${escapeHTML(t.reporter_grade)}/${escapeHTML(t.reporter_room || '-')}</span>` : ''}
+                                </div>
+                                <p class="text-sm text-slate-800 leading-relaxed">${escapeHTML(t.detail)}</p>
+                                <p class="text-[11px] text-slate-400 mt-2">${t.created_at ? new Date(t.created_at).toLocaleString('th-TH') : ''}</p>
+                            </div>
+                            <div class="flex flex-col gap-2 shrink-0">
+                                <select onchange="updateSOSStatus('${t.id}', this.value)" class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5">
+                                    <option value="pending" ${t.status === 'pending' ? 'selected' : ''}>รอดำเนินการ</option>
+                                    <option value="in_progress" ${t.status === 'in_progress' ? 'selected' : ''}>กำลังดำเนินการ</option>
+                                    <option value="resolved" ${t.status === 'resolved' ? 'selected' : ''}>แก้ไขแล้ว</option>
+                                </select>
+                                <button onclick="deleteSOS('${t.id}')" class="text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i>ลบ</button>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+        }
+
+        function statusLabel(s) {
+            return { pending: 'รอดำเนินการ', in_progress: 'กำลังดำเนินการ', resolved: 'แก้ไขแล้ว' }[s] || s;
+        }
+
+        function openLightbox(url) {
+            document.getElementById('lightbox-img').src = url;
+            document.getElementById('image-lightbox').classList.remove('hidden');
+            document.getElementById('image-lightbox').classList.add('flex');
+        }
+        function closeLightbox() {
+            document.getElementById('image-lightbox').classList.add('hidden');
+            document.getElementById('image-lightbox').classList.remove('flex');
+        }
+
+        async function updateSOSStatus(id, status) {
+            const { error } = await supabaseClient.from('sos_tickets').update({ status }).eq('id', id);
+            if (!error) { showToast('อัปเดตสถานะแล้ว', 'success'); fetchStats(); }
+            else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
+        }
+
+        async function deleteSOS(id) {
+            if (!confirm('ยืนยันการลบรายการนี้?')) return;
+            const { error } = await supabaseClient.from('sos_tickets').delete().eq('id', id);
+            if (!error) { showToast('ลบรายการแล้ว', 'success'); fetchSOSTickets(); fetchStats(); }
+            else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
+        }
+
+        // ==================================================
+        // 💡 STUDENT IDEAS
+        // ==================================================
+        async function fetchIdeasAdmin() {
+            const pendingContainer = document.getElementById('ideas-pending-container');
+            const approvedContainer = document.getElementById('ideas-approved-container');
+
+            const { data: ideas, error } = await supabaseClient.from('student_ideas').select('*').order('created_at', { ascending: false });
+
+            if (error || !ideas) {
+                pendingContainer.innerHTML = `<p class="text-sm text-slate-400">โหลดข้อมูลไม่สำเร็จ</p>`;
+                approvedContainer.innerHTML = '';
+                return;
+            }
+
+            const pending = ideas.filter(i => !i.is_approved);
+            const approved = ideas.filter(i => i.is_approved);
+
+            pendingContainer.innerHTML = pending.length ? pending.map(idea => `
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between gap-3">
+                    <p class="text-sm text-amber-900 font-medium">${escapeHTML(idea.title)}</p>
+                    <div class="flex gap-2 shrink-0">
+                        <button onclick="approveIdea('${idea.id}')" class="w-8 h-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center text-xs"><i class="fa-solid fa-check"></i></button>
+                        <button onclick="deleteIdea('${idea.id}')" class="w-8 h-8 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </div>`).join('') : `<p class="text-sm text-slate-400 bg-slate-50 rounded-xl p-4 border border-dashed border-slate-200">ไม่มีไอเดียรออนุมัติ</p>`;
+
+            approvedContainer.innerHTML = approved.length ? approved.map(idea => `
+                <div class="bg-white border border-slate-100 rounded-xl p-4 flex items-center justify-between gap-3 shadow-sm">
+                    <div>
+                        <p class="text-sm text-slate-800 font-medium">${escapeHTML(idea.title)}</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5"><i class="fa-solid fa-caret-up text-amber-500"></i> ${idea.votes || 0} โหวต</p>
+                    </div>
+                    <button onclick="deleteIdea('${idea.id}')" class="text-xs text-red-600 hover:text-red-800 font-medium shrink-0"><i class="fa-solid fa-trash"></i></button>
+                </div>`).join('') : `<p class="text-sm text-slate-400 bg-slate-50 rounded-xl p-4 border border-dashed border-slate-200">ยังไม่มีไอเดียที่อนุมัติ</p>`;
+        }
+
+        async function approveIdea(id) {
+            const { error } = await supabaseClient.from('student_ideas').update({ is_approved: true }).eq('id', id);
+            if (!error) { showToast('อนุมัติไอเดียแล้ว', 'success'); fetchIdeasAdmin(); fetchStats(); }
+            else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
+        }
+
+        async function deleteIdea(id) {
+            if (!confirm('ยืนยันการลบไอเดียนี้?')) return;
+            const { error } = await supabaseClient.from('student_ideas').delete().eq('id', id);
+            if (!error) { showToast('ลบไอเดียแล้ว', 'success'); fetchIdeasAdmin(); fetchStats(); }
+            else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
+        }
+
+        // ==================================================
+        // 📊 POLLS
+        // ==================================================
+        function openPollForm() { document.getElementById('poll-form-card').classList.remove('hidden'); }
+        function closePollForm() {
+            document.getElementById('poll-form-card').classList.add('hidden');
+            document.getElementById('new_poll_question').value = '';
+            document.getElementById('poll-options-inputs').innerHTML = `
+                <input type="text" class="poll-opt-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="ตัวเลือกที่ 1">
+                <input type="text" class="poll-opt-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="ตัวเลือกที่ 2">`;
+        }
+        function addPollOptionInput() {
+            const wrap = document.getElementById('poll-options-inputs');
+            const n = wrap.querySelectorAll('.poll-opt-input').length + 1;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'poll-opt-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm';
+            input.placeholder = `ตัวเลือกที่ ${n}`;
+            wrap.appendChild(input);
+        }
+
+        async function createPoll() {
+            const question = document.getElementById('new_poll_question').value.trim();
+            const options = Array.from(document.querySelectorAll('.poll-opt-input')).map(i => i.value.trim()).filter(Boolean);
+
+            if (!question || options.length < 2) {
+                showToast('กรุณากรอกคำถามและตัวเลือกอย่างน้อย 2 ข้อ', 'error');
+                return;
+            }
+
+            // ปิดโพลเก่าที่เปิดอยู่ทั้งหมดก่อน (มีได้แค่ 1 โพล active ต่อครั้ง)
+            await supabaseClient.from('polls').update({ is_active: false }).eq('is_active', true);
+
+            const { data: poll, error } = await supabaseClient.from('polls').insert([{ question, is_active: true }]).select().single();
+            if (error) { showToast('สร้างโพลไม่สำเร็จ: ' + error.message, 'error'); return; }
+
+            const optionRows = options.map(text => ({ poll_id: poll.id, option_text: text, votes_count: 0 }));
+            const { error: optError } = await supabaseClient.from('poll_options').insert(optionRows);
+            if (optError) { showToast('บันทึกตัวเลือกไม่สำเร็จ: ' + optError.message, 'error'); return; }
+
+            showToast('สร้างโพลใหม่และเปิดใช้งานแล้ว', 'success');
+            closePollForm();
+            fetchPollsAdmin();
+            fetchStats();
+        }
+
+        async function fetchPollsAdmin() {
+            const container = document.getElementById('polls-container');
+            const { data: polls, error } = await supabaseClient.from('polls').select('*, poll_options(*)').order('created_at', { ascending: false });
+
+            if (error || !polls || polls.length === 0) {
+                container.innerHTML = `<div class="bg-white rounded-3xl p-10 border border-slate-100 text-center text-slate-400"><i class="fa-solid fa-square-poll-vertical text-3xl mb-3 opacity-30"></i><p class="text-sm">ยังไม่มีโพลในระบบ</p></div>`;
+                return;
+            }
+
+            container.innerHTML = polls.map(poll => {
+                const totalVotes = (poll.poll_options || []).reduce((s, o) => s + (o.votes_count || 0), 0);
+                const optionsHTML = (poll.poll_options || []).sort((a, b) => (b.votes_count || 0) - (a.votes_count || 0)).map(opt => {
+                    const pct = totalVotes ? Math.round((opt.votes_count || 0) / totalVotes * 100) : 0;
+                    return `
+                        <div class="mb-2">
+                            <div class="flex justify-between text-xs text-slate-600 mb-1">
+                                <span>${escapeHTML(opt.option_text)}</span>
+                                <span class="font-bold">${opt.votes_count || 0} (${pct}%)</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div class="bg-red-800 h-2 rounded-full" style="width:${pct}%"></div>
+                            </div>
+                        </div>`;
+                }).join('');
+
+                return `
+                    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm enter-item">
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <div>
+                                <span class="status-pill ${poll.is_active ? 'status-in_progress' : 'status-resolved'}">${poll.is_active ? 'กำลังเปิดโหวต' : 'ปิดแล้ว'}</span>
+                                <h3 class="font-bold text-slate-900 mt-2">${escapeHTML(poll.question)}</h3>
+                            </div>
+                            <div class="flex gap-2 shrink-0">
+                                ${poll.is_active ? `<button onclick="togglePoll('${poll.id}', false)" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold px-3 py-1.5 rounded-lg">ปิดโพล</button>`
+                                                  : `<button onclick="togglePoll('${poll.id}', true)" class="text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold px-3 py-1.5 rounded-lg">เปิดโพล</button>`}
+                                <button onclick="deletePoll('${poll.id}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-700 font-bold px-3 py-1.5 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                        ${optionsHTML}
+                        <p class="text-[11px] text-slate-400 mt-2">รวม ${totalVotes} โหวต</p>
+                    </div>`;
+            }).join('');
+        }
+
+        async function togglePoll(id, activate) {
+            if (activate) {
+                await supabaseClient.from('polls').update({ is_active: false }).eq('is_active', true);
+            }
+            const { error } = await supabaseClient.from('polls').update({ is_active: activate }).eq('id', id);
+            if (!error) { showToast(activate ? 'เปิดโพลแล้ว' : 'ปิดโพลแล้ว', 'success'); fetchPollsAdmin(); fetchStats(); }
+            else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
+        }
+
+        async function deletePoll(id) {
+            if (!confirm('ยืนยันการลบโพลนี้? ตัวเลือกทั้งหมดจะถูกลบด้วย')) return;
+            await supabaseClient.from('poll_options').delete().eq('poll_id', id);
+            const { error } = await supabaseClient.from('polls').delete().eq('id', id);
+            if (!error) { showToast('ลบโพลแล้ว', 'success'); fetchPollsAdmin(); fetchStats(); }
+            else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
+        }
+
+        // ==================================================
+        // 📰 PR POSTS
+        // ==================================================
+        function openPostForm() { document.getElementById('post-form-card').classList.remove('hidden'); }
+        function closePostForm() {
+            document.getElementById('post-form-card').classList.add('hidden');
+            document.getElementById('new_post_title').value = '';
+            document.getElementById('new_post_content').value = '';
+        }
+
+        async function createPost() {
+            const category = document.getElementById('new_post_category').value;
+            const title = document.getElementById('new_post_title').value.trim();
+            const content = document.getElementById('new_post_content').value.trim();
+
+            if (!title || !content) { showToast('กรุณากรอกหัวข้อและเนื้อหาข่าว', 'error'); return; }
+
+            const { error } = await supabaseClient.from('pr_posts').insert([{ category, title, content }]);
+            if (!error) { showToast('เผยแพร่ข่าวเรียบร้อยแล้ว', 'success'); closePostForm(); fetchPostsAdmin(); fetchStats(); }
+            else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
+        }
+
+        async function fetchPostsAdmin() {
+            const container = document.getElementById('posts-container');
+            const { data: posts, error } = await supabaseClient.from('pr_posts').select('*').order('created_at', { ascending: false });
+
+            if (error || !posts || posts.length === 0) {
+                container.innerHTML = `<div class="col-span-full bg-white rounded-3xl p-10 border border-slate-100 text-center text-slate-400"><i class="fa-solid fa-newspaper text-3xl mb-3 opacity-30"></i><p class="text-sm">ยังไม่มีข่าวประชาสัมพันธ์</p></div>`;
+                return;
+            }
+
+            container.innerHTML = posts.map(post => `
+                <div class="bg-white border border-slate-100 p-6 rounded-3xl shadow-sm enter-item relative">
+                    <button onclick="deletePost('${post.id}')" class="absolute top-4 right-4 text-slate-300 hover:text-red-600 transition-colors"><i class="fa-solid fa-trash"></i></button>
+                    <span class="text-[10px] font-bold px-2.5 py-1 bg-red-50 text-red-800 rounded-full uppercase tracking-wider">${escapeHTML(post.category || 'ข่าวทั่วไป')}</span>
+                    <h3 class="font-bold text-base text-slate-900 mt-4 mb-2 leading-snug pr-6">${escapeHTML(post.title)}</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">${escapeHTML(post.content)}</p>
+                    <p class="text-[11px] text-slate-400 mt-3">${post.created_at ? new Date(post.created_at).toLocaleString('th-TH') : ''}</p>
+                </div>`).join('');
+        }
+
+        async function deletePost(id) {
+            if (!confirm('ยืนยันการลบข่าวนี้?')) return;
+            const { error } = await supabaseClient.from('pr_posts').delete().eq('id', id);
+            if (!error) { showToast('ลบข่าวแล้ว', 'success'); fetchPostsAdmin(); fetchStats(); }
+            else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
+        }
+
+        // ==================================================
+        // ⚙️ INIT
+        // ==================================================
+        supabaseClient.auth.onAuthStateChange(() => checkAdminSession());
+    </script>
 </body>
 </html>

@@ -74,14 +74,17 @@
 </head>
 <body class="flex flex-col min-h-screen text-slate-800 pb-12">
 
+    <!-- Global Toast Notification -->
     <div id="app-toast" class="fixed bottom-6 right-6 md:bottom-10 md:right-10 p-4 pr-6 rounded-2xl shadow-xl z-[200] flex items-center gap-3 max-w-sm hidden transition-all text-white">
         <div id="app-toast-icon" class="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-white/20"></div>
         <span id="app-toast-message" class="text-sm font-semibold tracking-wide"></span>
     </div>
 
+    <!-- Authentication Overlay -->
     <div id="auth-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
         <div class="bg-white border border-slate-100 p-8 md:p-10 rounded-3xl shadow-2xl w-[420px] max-w-full">
             <div class="text-center mb-6">
+                <!-- ตราโรงเรียน -->
                 <div class="w-20 h-20 mx-auto mb-2 flex items-center justify-center bg-slate-100 rounded-full text-slate-400 text-3xl">
                     <i class="fa-solid fa-school"></i>
                 </div>
@@ -105,6 +108,7 @@
         </div>
     </div>
 
+    <!-- Consent Overlay -->
     <div id="consent-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4 hidden">
         <div class="bg-white border border-slate-100 p-8 md:p-10 rounded-3xl shadow-2xl w-[480px] max-w-full max-h-[90vh] flex flex-col">
             <div class="text-center mb-6">
@@ -134,6 +138,7 @@
         </div>
     </div>
 
+    <!-- Avatar Setup Overlay -->
     <div id="avatar-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[105] flex items-center justify-center p-4 hidden">
         <div class="bg-white border border-slate-100 p-8 md:p-10 rounded-3xl shadow-2xl w-[420px] max-w-full text-center">
             <div class="w-14 h-14 rounded-full bg-red-50 text-red-800 flex items-center justify-center text-2xl mx-auto mb-4">
@@ -167,6 +172,7 @@
         </div>
     </div>
 
+    <!-- Navbar -->
     <nav class="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 shadow-sm">
         <div class="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -176,6 +182,7 @@
                 <span class="font-bold text-lg tracking-tight text-slate-900">PRSC PORTAL</span>
             </div>
             <div class="flex items-center gap-4">
+                <!-- ปุ่ม Admin Dashboard -->
                 <a href="admin.html" id="nav-admin-btn" class="hidden text-sm bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2">
                     <i class="fa-solid fa-shield-halved"></i> <span>ระบบแอดมิน</span>
                 </a>
@@ -194,6 +201,7 @@
         </div>
     </nav>
 
+    <!-- Main Content -->
     <main class="max-w-6xl mx-auto px-4 mt-8 space-y-12">
         <section class="bg-gradient-to-br from-red-900 to-slate-950 rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden shadow-xl enter-item">
             <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-red-600/20 rounded-full blur-3xl"></div>
@@ -261,6 +269,7 @@
                             <input type="file" id="sos_image" accept="image/jpeg, image/png, image/webp" onchange="previewSOSImage(event)" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:border-red-800 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-red-100 file:text-red-800 hover:file:bg-red-200">
                             <p class="text-[10px] text-slate-400 mt-1">* รองรับไฟล์ JPG, PNG หรือ WEBP ขนาดไม่เกิน 5MB</p>
                             
+                            <!-- ส่วนแสดงตัวอย่างรูปภาพก่อนส่ง ปรับตามไฟล์ที่ 1 -->
                             <div id="sos_image_preview_container" class="hidden mt-3 relative inline-block">
                                 <img id="sos_image_preview" src="" class="h-24 w-24 object-cover rounded-xl border-2 border-slate-200 shadow-sm">
                                 <button type="button" onclick="clearSOSImage()" class="absolute -top-2 -right-2 bg-slate-800 hover:bg-slate-900 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md transition-colors">
@@ -284,10 +293,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // 🚨 คำเตือน: สาเหตุที่ปุ่มแอดมินไม่โผล่ เพราะโค้ดกำลังใช้ Key จำลองอยู่ครับ!
-        // ⚠️ ลบของเดิมทิ้ง แล้วเอา URL และ ANON_KEY จากโปรเจกต์ Supabase ของคุณมาใส่ตรงนี้เท่านั้น ⚠️
-        const SUPABASE_URL = "YOUR_SUPABASE_URL";
-        const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+        // ⚠️ แนะนำให้นำค่า URL และ ANON_KEY ของจริงจากไฟล์ที่ 2 มาใส่ตรงนี้ครับ
+        const SUPABASE_URL = "https://dkuyxaujvhqanloqcgbh.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdXl4YXVqdmhxYW5sb3FjZ2JoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyODg3OTcsImV4cCI6MjA5OTg2NDc5N30.GR2gCIWtqokqa5YBgXv1H1QsKQlPiDj9UF4i8C7BMmI";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // ==================================================

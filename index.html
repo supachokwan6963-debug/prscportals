@@ -84,7 +84,6 @@
     <div id="auth-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
         <div class="bg-white border border-slate-100 p-8 md:p-10 rounded-3xl shadow-2xl w-[420px] max-w-full">
             <div class="text-center mb-6">
-                <!-- ตราโรงเรียน -->
                 <div class="w-20 h-20 mx-auto mb-2 flex items-center justify-center bg-slate-100 rounded-full text-slate-300 text-3xl">
                     <i class="fa-solid fa-school"></i>
                 </div>
@@ -94,12 +93,12 @@
 
             <form id="form-id" class="space-y-5" onsubmit="loginWithStudentID(event)">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">รหัสนักเรียน 5 หลัก</label>
-                    <input type="text" id="login_student_id" required placeholder="ตัวอย่าง: 46477" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 transition-all text-sm">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">รหัสนักเรียน 5 หลัก (หรืออีเมลแอดมิน)</label>
+                    <input type="text" id="login_student_id" required placeholder="ตัวอย่าง: 46477 หรือ admin@piriyalai.ac.th" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 transition-all text-sm">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">รหัสผ่าน</label>
-                    <input type="password" id="login_id_password" required placeholder="รหัสผ่านเริ่มต้นคือ 12345" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 transition-all text-sm">
+                    <input type="password" id="login_id_password" required placeholder="รหัสผ่าน" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 transition-all text-sm">
                 </div>
                 <button type="submit" class="w-full bg-red-800 hover:bg-red-900 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-red-900/20 transition-all text-sm mt-2">
                     ลงชื่อเข้าใช้
@@ -182,6 +181,11 @@
                 <span class="font-bold text-lg tracking-tight text-slate-900">PRSC PORTAL</span>
             </div>
             <div class="flex items-center gap-4">
+                <!-- ปุ่ม Admin Dashboard (ซ่อนไว้ เริ่มต้น) -->
+                <a href="admin.html" id="nav-admin-btn" class="hidden text-sm bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved"></i> <span>ระบบแอดมิน</span>
+                </a>
+
                 <button onclick="openAvatarOverlay()" class="relative group" title="เปลี่ยนรูปโปรไฟล์">
                     <img id="navbar-avatar-img" src="" class="w-10 h-10 rounded-full object-cover border-2 border-slate-200 shadow-sm hidden group-hover:opacity-80 transition-opacity">
                     <div id="navbar-avatar-placeholder" class="w-10 h-10 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center text-slate-400 hidden group-hover:opacity-80 transition-opacity">
@@ -262,7 +266,6 @@
                         <div>
                             <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">แนบรูปภาพประกอบ (ถ้ามี)</label>
                             <input type="file" id="sos_image" accept="image/jpeg, image/png, image/webp" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:border-red-800 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-red-100 file:text-red-800 hover:file:bg-red-200">
-                            <!-- ปรับข้อความเตือนเรื่องขนาดไฟล์แทนการบอกเรื่อง AI AI -->
                             <p class="text-[10px] text-slate-400 mt-1">* รองรับไฟล์ JPG, PNG หรือ WEBP ขนาดไม่เกิน 5MB</p>
                         </div>
 
@@ -281,14 +284,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // กำหนดค่า Supabase
-        const SUPABASE_URL = "https://dkuyxaujvhqanloqcgbh.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdXl4YXVqdmhxYW5sb3FjZ2JoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyODg3OTcsImV4cCI6MjA5OTg2NDc5N30.GR2gCIWtqokqa5YBgXv1H1QsKQlPiDj9UF4i8C7BMmI";
+        // ⚠️ สำคัญ: ใส่ URL และ KEY ของคุณตรงนี้ ⚠️
+        const SUPABASE_URL = "YOUR_SUPABASE_URL";
+        const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ==================================================
-        // 🧼 UTIL: กัน XSS ตอน render ข้อความที่มาจากผู้ใช้
-        // ==================================================
         function escapeHTML(str) {
             if (str === null || str === undefined) return '';
             return String(str)
@@ -299,9 +299,6 @@
                 .replace(/'/g, '&#039;');
         }
 
-        // ==================================================
-        // 🎨 FUNCTION: IN-APP NOTIFICATION (TOAST)
-        // ==================================================
         let toastTimeout;
         function showToast(message, type = 'success', duration = 3500) {
             const toast = document.getElementById('app-toast');
@@ -335,19 +332,17 @@
             }
         }
 
-        // ==================================================
-        // 🔐 FUNCTIONS: AUTHENTICATION & SESSION
-        // ==================================================
         async function loginWithStudentID(e) {
             e.preventDefault();
-            const studentID = document.getElementById('login_student_id').value;
+            const inputID = document.getElementById('login_student_id').value.trim();
             const password = document.getElementById('login_id_password').value;
-            const dummyEmail = `${studentID}@piriyalai.net`;
+            
+            const loginEmail = inputID.includes('@') ? inputID : `${inputID}@piriyalai.net`;
 
-            const { error } = await supabaseClient.auth.signInWithPassword({ email: dummyEmail, password: password });
+            const { error } = await supabaseClient.auth.signInWithPassword({ email: loginEmail, password: password });
 
             if (error) {
-                showToast('ไม่พบรหัสนักเรียนนี้ หรือรหัสผ่านไม่ถูกต้องครับ', 'error');
+                showToast('ไม่พบผู้ใช้งานนี้ หรือรหัสผ่านไม่ถูกต้องครับ', 'error');
             } else {
                 document.getElementById('login_student_id').value = '';
                 document.getElementById('login_id_password').value = '';
@@ -359,12 +354,33 @@
             const { data: { session } } = await supabaseClient.auth.getSession();
 
             if (session) {
-                const studentIdShow = session.user.email.split('@')[0];
-                document.getElementById('user-display-id').innerHTML =
-                    `<i class="fa-regular fa-user mr-1"></i> รหัส: ${escapeHTML(studentIdShow)}`;
-                document.getElementById('user-display-id').classList.remove('hidden');
-
                 document.getElementById('auth-overlay').classList.add('hidden');
+
+                const { data: adminData } = await supabaseClient
+                    .from('admins')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .maybeSingle();
+
+                if (adminData) {
+                    document.getElementById('nav-admin-btn').classList.remove('hidden');
+                    document.getElementById('user-display-id').innerHTML = `<i class="fa-solid fa-crown text-amber-500 mr-1"></i> ${escapeHTML(adminData.display_name || 'แอดมิน')}`;
+                    document.getElementById('user-display-id').classList.remove('hidden');
+                    
+                    document.getElementById('consent-overlay').classList.add('hidden');
+                    document.getElementById('avatar-overlay').classList.add('hidden');
+                    
+                    fetchPRPosts();
+                    fetchActivePoll();
+                    fetchStudentIdeas();
+                    return; 
+                }
+
+                document.getElementById('nav-admin-btn').classList.add('hidden');
+                
+                const studentIdShow = session.user.email.split('@')[0];
+                document.getElementById('user-display-id').innerHTML = `<i class="fa-regular fa-user mr-1"></i> รหัส: ${escapeHTML(studentIdShow)}`;
+                document.getElementById('user-display-id').classList.remove('hidden');
 
                 const { data: profile } = await supabaseClient
                     .from('student_profiles')
@@ -403,6 +419,7 @@
                 document.getElementById('user-display-id').classList.add('hidden');
                 document.getElementById('navbar-avatar-img').classList.add('hidden');
                 document.getElementById('navbar-avatar-placeholder').classList.add('hidden');
+                document.getElementById('nav-admin-btn').classList.add('hidden');
             }
         }
 
@@ -423,9 +440,6 @@
             }
         }
 
-        // ==================================================
-        // 🖼️ FUNCTIONS: AVATAR (PROFILE PICTURE)
-        // ==================================================
         let selectedAvatarFile = null;
 
         function updateNavbarAvatar(avatarUrl) {
@@ -537,9 +551,6 @@
             window.location.reload();
         }
 
-        // ==================================================
-        // 📥 FUNCTIONS: DATA FETCHING & RENDERING
-        // ==================================================
         async function fetchPRPosts() {
             const container = document.getElementById('pr-posts-container');
             const { data: posts, error } = await supabaseClient.from('pr_posts').select('*').order('created_at', { ascending: false });
@@ -620,9 +631,6 @@
             });
         }
 
-        // ==================================================
-        // 📤 FUNCTIONS: FORM SUBMISSION (แนบข้อมูลชั้น/ห้องเพื่อทำ RLS ฝั่ง Admin)
-        // ==================================================
         async function submitSOS(e) {
             e.preventDefault();
             const btn = document.getElementById('sos_submit_btn');
@@ -646,17 +654,25 @@
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังประมวลผล...';
 
             try {
-                // 1. ค้นหาข้อมูลระดับชั้นและห้องเรียนของคนล็อกอิน เพื่อเตรียมทำ RLS ฝั่ง Admin
                 const studentIdStr = session.user.email.split('@')[0];
-                const { data: studentInfo } = await supabaseClient
-                    .from('students')
-                    .select('grade, room')
-                    .eq('student_id', studentIdStr)
-                    .single();
+                let studentGrade = null;
+                let studentRoom = null;
+                
+                if (!session.user.email.includes('.ac.th')) {
+                     const { data: studentInfo } = await supabaseClient
+                        .from('students')
+                        .select('grade, room')
+                        .eq('student_id', studentIdStr)
+                        .maybeSingle();
+                        
+                     if(studentInfo) {
+                         studentGrade = studentInfo.grade;
+                         studentRoom = studentInfo.room;
+                     }
+                }
 
                 let imagePath = null;
 
-                // 2. อัปโหลดรูป (ถ้ามี) โดยไม่ผ่าน AI แล้ว
                 if (file) {
                     const MAX_SIZE = 5 * 1024 * 1024; // 5MB
                     if (file.size > MAX_SIZE) {
@@ -680,14 +696,13 @@
 
                 showToast('กำลังบันทึกข้อมูลเข้าระบบ...', 'loading', 0);
 
-                // 3. Insert ข้อมูลลงฐานข้อมูล พร้อมแนบพิกัด reporter_grade และ reporter_room
                 const { error: insertError } = await supabaseClient.from('sos_tickets').insert([{
                     category: category,
                     detail: detail,
                     image_path: imagePath,
                     status: 'pending',
-                    reporter_grade: studentInfo ? studentInfo.grade : null,
-                    reporter_room: studentInfo ? studentInfo.room : null
+                    reporter_grade: studentGrade,
+                    reporter_room: studentRoom
                 }]);
 
                 if (insertError) throw insertError;
@@ -718,9 +733,6 @@
             }
         }
 
-        // ==================================================
-        // ⚙️ INITIALIZATION
-        // ==================================================
         supabaseClient.auth.onAuthStateChange((event, session) => {
             checkUserSessionAndConsent();
         });

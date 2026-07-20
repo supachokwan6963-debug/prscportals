@@ -11,13 +11,12 @@ jobs:
       - name: ⚙️ Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: 📦 Install Supabase JS
         run: npm install @supabase/supabase-js
 
       - name: 📝 Create Script Dynamically
-        # สร้างไฟล์ create-admin.js กลางอากาศบน Runner
         run: |
           cat << 'EOF' > create-admin.js
           const { createClient } = require('@supabase/supabase-js');

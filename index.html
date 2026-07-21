@@ -37,7 +37,7 @@
             transform: scale(0.96);
         }
 
-        #auth-overlay, #consent-overlay {
+        #auth-overlay, #consent-overlay, #lightbox-modal {
             transition: opacity 0.3s ease-out;
         }
         #auth-overlay:not(.hidden) > div,
@@ -74,20 +74,24 @@
 </head>
 <body class="flex flex-col min-h-screen text-slate-800 pb-12">
 
-    <!-- Global Toast Notification -->
     <div id="app-toast" class="fixed bottom-6 right-6 md:bottom-10 md:right-10 p-4 pr-6 rounded-2xl shadow-xl z-[200] flex items-center gap-3 max-w-sm hidden transition-all text-white">
         <div id="app-toast-icon" class="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-white/20"></div>
         <span id="app-toast-message" class="text-sm font-semibold tracking-wide"></span>
     </div>
 
-    <!-- Authentication Overlay -->
+    <div id="lightbox-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[300] flex items-center justify-center p-4 hidden cursor-pointer" onclick="closeLightbox()">
+        <div class="relative max-w-4xl max-h-[90vh] p-2" onclick="event.stopPropagation()">
+            <button onclick="closeLightbox()" class="absolute -top-3 -right-3 bg-white text-slate-800 rounded-full w-9 h-9 flex items-center justify-center text-sm shadow-lg hover:bg-slate-200 transition-all font-bold z-10">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <img id="lightbox-img" src="" class="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain mx-auto">
+        </div>
+    </div>
+
     <div id="auth-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
         <div class="bg-white border border-slate-100 p-8 md:p-10 rounded-3xl shadow-2xl w-[420px] max-w-full">
             <div class="text-center mb-6">
-                <!-- ตราโรงเรียน -->
-                <div class="w-20 h-20 mx-auto mb-2 flex items-center justify-center bg-slate-100 rounded-full text-slate-400 text-3xl">
-                    <i class="fa-solid fa-school"></i>
-                </div>
+                <img src="https://i.ibb.co/xqWd50QS/Chat-GPT-Image-18-2569-22-19-18-Photoroom.png" alt="PRSC Logo" class="w-20 h-20 mx-auto mb-3 object-contain drop-shadow-sm">
                 <h2 class="text-2xl font-bold text-slate-900 tracking-tight">PRSC PORTAL</h2>
                 <p class="text-sm text-slate-500 mt-1">ระบบฐานข้อมูลสภานักเรียน</p>
             </div>
@@ -108,7 +112,6 @@
         </div>
     </div>
 
-    <!-- Consent Overlay -->
     <div id="consent-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4 hidden">
         <div class="bg-white border border-slate-100 p-8 md:p-10 rounded-3xl shadow-2xl w-[480px] max-w-full max-h-[90vh] flex flex-col">
             <div class="text-center mb-6">
@@ -138,7 +141,6 @@
         </div>
     </div>
 
-    <!-- Avatar Setup Overlay -->
     <div id="avatar-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[105] flex items-center justify-center p-4 hidden">
         <div class="bg-white border border-slate-100 p-8 md:p-10 rounded-3xl shadow-2xl w-[420px] max-w-full text-center">
             <div class="w-14 h-14 rounded-full bg-red-50 text-red-800 flex items-center justify-center text-2xl mx-auto mb-4">
@@ -172,18 +174,14 @@
         </div>
     </div>
 
-    <!-- Navbar -->
     <nav class="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 shadow-sm">
-        <div class="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
+        <div class="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between gap-2">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
-                    <i class="fa-solid fa-school text-sm"></i>
-                </div>
-                <span class="font-bold text-lg tracking-tight text-slate-900">PRSC PORTAL</span>
+                <img src="https://i.ibb.co/xqWd50QS/Chat-GPT-Image-18-2569-22-19-18-Photoroom.png" alt="PRSC Logo" class="w-10 h-10 object-contain">
+                <span class="font-bold text-lg tracking-tight text-slate-900 hidden sm:inline">PRSC PORTAL</span>
             </div>
-            <div class="flex items-center gap-4">
-                <!-- ปุ่ม Admin Dashboard -->
-                <a href="admin.html" id="nav-admin-btn" class="hidden text-sm bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2">
+            <div class="flex items-center gap-2 sm:gap-4">
+                <a href="admin.html" id="nav-admin-btn" class="hidden text-xs sm:text-sm bg-blue-600 text-white hover:bg-blue-700 px-3 py-2 sm:px-4 sm:py-2 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2">
                     <i class="fa-solid fa-shield-halved"></i> <span>ระบบแอดมิน</span>
                 </a>
 
@@ -193,15 +191,14 @@
                         <i class="fa-solid fa-user text-sm"></i>
                     </div>
                 </button>
-                <span id="user-display-id" class="text-sm text-slate-500 font-semibold hidden md:inline px-3 py-1 bg-slate-100 rounded-full border border-slate-200"></span>
-                <button onclick="logout()" class="text-sm bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900 px-4 py-2 rounded-xl font-medium transition-all">
+                <span id="user-display-id" class="text-xs sm:text-sm text-slate-500 font-semibold hidden md:inline px-3 py-1 bg-slate-100 rounded-full border border-slate-200"></span>
+                <button onclick="logout()" class="text-xs sm:text-sm bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900 px-3 py-2 sm:px-4 sm:py-2 rounded-xl font-medium transition-all">
                     ออกจากระบบ
                 </button>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
     <main class="max-w-6xl mx-auto px-4 mt-8 space-y-12">
         <section class="bg-gradient-to-br from-red-900 to-slate-950 rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden shadow-xl enter-item">
             <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-red-600/20 rounded-full blur-3xl"></div>
@@ -231,11 +228,26 @@
 
                     <div id="ideas-container" class="space-y-3 mb-8"></div>
 
-                    <form onsubmit="submitIdea(event)" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 px-1">เสนอไอเดียของคุณ</label>
-                        <div class="flex flex-col sm:flex-row gap-3">
-                            <input type="text" id="idea_title" required placeholder="เช่น อยากให้มีตู้กดน้ำจุดอาคาร 3..." class="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:border-red-800 transition-colors">
-                            <button type="submit" class="bg-slate-900 text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-slate-800 transition-all sm:w-auto w-full shadow-md shadow-slate-900/10">ส่งไอเดีย</button>
+                    <form onsubmit="submitIdea(event)" class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider px-1">เสนอไอเดียของคุณ</label>
+                        <div class="space-y-3">
+                            <input type="text" id="idea_title" required placeholder="เช่น อยากให้มีตู้กดน้ำจุดอาคาร 3..." class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:border-red-800 transition-colors">
+                            
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">แนบรูปภาพประกอบไอเดีย (ถ้ามี)</label>
+                                <input type="file" id="idea_image" accept="image/jpeg, image/png, image/webp" onchange="previewIdeaImage(event)" class="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:border-red-800 transition-colors file:mr-4 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-800 hover:file:bg-amber-200">
+                                
+                                <div id="idea_image_preview_container" class="hidden mt-3 relative inline-block">
+                                    <img id="idea_image_preview" src="" class="h-24 w-24 object-cover rounded-xl border-2 border-slate-200 shadow-sm cursor-pointer hover:opacity-90 transition-opacity" onclick="openLightbox(this.src)" title="คลิกเพื่อดูรูปใหญ่">
+                                    <button type="button" onclick="clearIdeaImage()" class="absolute -top-2 -right-2 bg-slate-800 hover:bg-slate-900 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md transition-colors">
+                                        <i class="fa-solid fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button type="submit" id="idea_submit_btn" class="w-full bg-slate-900 text-white font-bold text-sm py-3.5 px-6 rounded-xl hover:bg-slate-800 transition-all shadow-md shadow-slate-900/10 flex items-center justify-center gap-2">
+                                <i class="fa-regular fa-paper-plane"></i> ส่งไอเดีย
+                            </button>
                         </div>
                     </form>
                 </section>
@@ -269,9 +281,8 @@
                             <input type="file" id="sos_image" accept="image/jpeg, image/png, image/webp" onchange="previewSOSImage(event)" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:border-red-800 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-red-100 file:text-red-800 hover:file:bg-red-200">
                             <p class="text-[10px] text-slate-400 mt-1">* รองรับไฟล์ JPG, PNG หรือ WEBP ขนาดไม่เกิน 5MB</p>
                             
-                            <!-- ส่วนแสดงตัวอย่างรูปภาพก่อนส่ง ปรับตามไฟล์ที่ 1 -->
                             <div id="sos_image_preview_container" class="hidden mt-3 relative inline-block">
-                                <img id="sos_image_preview" src="" class="h-24 w-24 object-cover rounded-xl border-2 border-slate-200 shadow-sm">
+                                <img id="sos_image_preview" src="" class="h-24 w-24 object-cover rounded-xl border-2 border-slate-200 shadow-sm cursor-pointer hover:opacity-90 transition-opacity" onclick="openLightbox(this.src)" title="คลิกเพื่อดูรูปใหญ่">
                                 <button type="button" onclick="clearSOSImage()" class="absolute -top-2 -right-2 bg-slate-800 hover:bg-slate-900 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md transition-colors">
                                     <i class="fa-solid fa-times"></i>
                                 </button>
@@ -293,7 +304,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // ⚠️ แนะนำให้นำค่า URL และ ANON_KEY ของจริงจากไฟล์ที่ 2 มาใส่ตรงนี้ครับ
         const SUPABASE_URL = "https://dkuyxaujvhqanloqcgbh.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdXl4YXVqdmhxYW5sb3FjZ2JoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyODg3OTcsImV4cCI6MjA5OTg2NDc5N30.GR2gCIWtqokqa5YBgXv1H1QsKQlPiDj9UF4i8C7BMmI";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -309,6 +319,20 @@
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
+        }
+
+        // ==================================================
+        // 🖼️ LIGHTBOX MODAL SYSTEM
+        // ==================================================
+        function openLightbox(src) {
+            if (!src) return;
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('lightbox-modal').classList.remove('hidden');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox-modal').classList.add('hidden');
+            document.getElementById('lightbox-img').src = '';
         }
 
         // ==================================================
@@ -348,7 +372,7 @@
         }
 
         // ==================================================
-        // 🔐 ระบบ Login & ตรวจสอบสิทธิ์ (แสดงปุ่ม Admin)
+        // 🔐 ระบบ Login & ตรวจสอบสิทธิ์
         // ==================================================
         async function loginWithStudentID(e) {
             e.preventDefault();
@@ -374,7 +398,6 @@
             if (session) {
                 document.getElementById('auth-overlay').classList.add('hidden');
 
-                // ตรวจสอบว่าเป็นสิทธิ์ Admin หรือไม่
                 const { data: adminData } = await supabaseClient
                     .from('admins')
                     .select('*')
@@ -460,7 +483,7 @@
         }
 
         // ==================================================
-        // 🖼️ ระบบ AVATAR (รูปโปรไฟล์)
+        // 🖼️ ระบบ AVATAR
         // ==================================================
         let selectedAvatarFile = null;
 
@@ -646,9 +669,23 @@
 
             container.innerHTML = '';
             ideas.forEach((idea, i) => {
+                let imgHtml = '';
+                let imgUrl = idea.image_url;
+                if (!imgUrl && idea.image_path) {
+                    const { data } = supabaseClient.storage.from('sos-images').getPublicUrl(idea.image_path);
+                    imgUrl = data?.publicUrl;
+                }
+
+                if (imgUrl) {
+                    imgHtml = `<img src="${escapeHTML(imgUrl)}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 cursor-pointer shrink-0 hover:opacity-80 transition-opacity" onclick="openLightbox('${escapeHTML(imgUrl)}')">`;
+                }
+
                 container.innerHTML += `
-                    <div class="card-lift flex items-center justify-between p-4 bg-white border border-slate-100 shadow-sm rounded-2xl enter-item" style="animation-delay:${i * 0.08}s">
-                        <p class="text-sm font-medium text-slate-800 pr-4">${escapeHTML(idea.title)}</p>
+                    <div class="card-lift flex items-center justify-between p-4 bg-white border border-slate-100 shadow-sm rounded-2xl enter-item gap-3" style="animation-delay:${i * 0.08}s">
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            ${imgHtml}
+                            <p class="text-sm font-medium text-slate-800 truncate">${escapeHTML(idea.title)}</p>
+                        </div>
                         <button class="bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200 text-xs font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 transition-colors shrink-0 shadow-sm">
                             <i class="fa-solid fa-caret-up text-amber-500"></i> ${idea.votes || 0}
                         </button>
@@ -657,13 +694,13 @@
         }
 
         // ==================================================
-        // 📷 SOS IMAGE PREVIEW LOGIC
+        // 📷 IMAGE PREVIEW & CLEAR LOGIC
         // ==================================================
         function previewSOSImage(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+            const MAX_SIZE = 5 * 1024 * 1024;
             if (file.size > MAX_SIZE) {
                 showToast('ไฟล์รูปใหญ่เกิน 5MB', 'error');
                 event.target.value = '';
@@ -682,6 +719,31 @@
             document.getElementById('sos_image').value = '';
             document.getElementById('sos_image_preview_container').classList.add('hidden');
             document.getElementById('sos_image_preview').src = '';
+        }
+
+        function previewIdeaImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const MAX_SIZE = 5 * 1024 * 1024;
+            if (file.size > MAX_SIZE) {
+                showToast('ไฟล์รูปใหญ่เกิน 5MB', 'error');
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('idea_image_preview').src = e.target.result;
+                document.getElementById('idea_image_preview_container').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearIdeaImage() {
+            document.getElementById('idea_image').value = '';
+            document.getElementById('idea_image_preview_container').classList.add('hidden');
+            document.getElementById('idea_image_preview').src = '';
         }
 
         // ==================================================
@@ -714,7 +776,6 @@
                 let studentGrade = null;
                 let studentRoom = null;
                 
-                // ดึงข้อมูลชั้นและห้องของนักเรียน เพื่อทำระบบคัดกรองความปลอดภัยฝั่งแอดมิน
                 const { data: studentInfo } = await supabaseClient
                     .from('students')
                     .select('grade, room')
@@ -768,33 +829,90 @@
 
         async function submitIdea(e) {
             e.preventDefault();
+            const btn = document.getElementById('idea_submit_btn');
             const title = document.getElementById('idea_title').value.trim();
+            const fileInput = document.getElementById('idea_image');
+            const file = fileInput.files[0];
+
             if (!title) return;
 
-            const { error } = await supabaseClient.from('student_ideas').insert([{ title, votes: 1, is_approved: false }]);
-            if (!error) {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                showToast('กรุณาเข้าสู่ระบบก่อนเสนอไอเดีย', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังส่งไอเดีย...';
+
+            try {
+                let imagePath = null;
+                let publicUrl = null;
+
+                if (file) {
+                    showToast('กำลังอัปโหลดรูปภาพ...', 'loading', 0);
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `ideas/${session.user.id}/${Date.now()}.${fileExt}`;
+                    
+                    const { error: uploadError } = await supabaseClient.storage
+                        .from('sos-images')
+                        .upload(fileName, file);
+
+                    if (uploadError) throw uploadError;
+
+                    const { data: publicUrlData } = supabaseClient.storage
+                        .from('sos-images')
+                        .getPublicUrl(fileName);
+
+                    publicUrl = publicUrlData.publicUrl;
+                    imagePath = fileName;
+                }
+
+                showToast('กำลังบันทึกความคิดเห็น...', 'loading', 0);
+
+                const { error } = await supabaseClient.from('student_ideas').insert([{
+                    title: title,
+                    image_path: imagePath,
+                    image_url: publicUrl,
+                    votes: 1,
+                    is_approved: false
+                }]);
+
+                if (error) throw error;
+
                 showToast('💡 เสนอไอเดียสำเร็จแล้ว! รอสภาฯ อนุมัติการแสดงผลครับ', 'success');
                 document.getElementById('idea_title').value = '';
-                
-                // Optimistic UI: แสดงไอเดียหน้าจอทันทีเพื่อ UX ที่ดีเยี่ยม
+                clearIdeaImage();
+
+                // Optimistic UI Display
                 const container = document.getElementById('ideas-container');
                 if (container.innerHTML.includes('ยังไม่มีไอเดียเสนอแนะ')) {
                     container.innerHTML = '';
                 }
+                const imageThumb = publicUrl ? `<img src="${escapeHTML(publicUrl)}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 cursor-pointer shrink-0 hover:opacity-80 transition-opacity" onclick="openLightbox('${escapeHTML(publicUrl)}')">` : '';
                 const tempHTML = `
-                    <div class="card-lift flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-2xl enter-item">
-                        <p class="text-sm font-medium text-amber-900 pr-4">
-                            ${escapeHTML(title)} 
-                            <span class="inline-block ml-2 text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">รออนุมัติ</span>
-                        </p>
+                    <div class="card-lift flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-2xl enter-item gap-3">
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            ${imageThumb}
+                            <div>
+                                <p class="text-sm font-medium text-amber-900">
+                                    ${escapeHTML(title)} 
+                                    <span class="inline-block ml-2 text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">รออนุมัติ</span>
+                                </p>
+                            </div>
+                        </div>
                         <button disabled class="bg-white/50 text-amber-400 border border-amber-200 text-xs font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-caret-up"></i> 1
                         </button>
                     </div>`;
                 container.insertAdjacentHTML('afterbegin', tempHTML);
 
-            } else {
-                showToast('เกิดข้อผิดพลาดในการส่งข้อมูล', 'error');
+            } catch (err) {
+                console.error('submitIdea error:', err);
+                showToast('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งไอเดีย';
             }
         }
 

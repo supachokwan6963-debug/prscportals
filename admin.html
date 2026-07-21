@@ -68,7 +68,6 @@
         <span id="app-toast-message" class="text-sm font-semibold tracking-wide"></span>
     </div>
 
-    <!-- LOGIN -->
     <div id="auth-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
         <div class="bg-white border border-slate-100 p-8 md:p-10 rounded-3xl shadow-2xl w-[420px] max-w-full">
             <div class="text-center mb-6">
@@ -81,7 +80,7 @@
             <form onsubmit="loginAdmin(event)" class="space-y-5">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">อีเมลแอดมิน</label>
-                    <input type="text" id="login_email" required placeholder="admin@piriyalai.ac.th" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 transition-all text-sm">
+                    <input type="email" id="login_email" required placeholder="admin@piriyalai.ac.th" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 transition-all text-sm">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">รหัสผ่าน</label>
@@ -95,7 +94,6 @@
         </div>
     </div>
 
-    <!-- NOT ADMIN -->
     <div id="denied-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
         <div class="bg-white border border-slate-100 p-8 md:p-10 rounded-3xl shadow-2xl w-[420px] max-w-full text-center">
             <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-red-50 rounded-full text-red-800 text-2xl">
@@ -107,7 +105,6 @@
         </div>
     </div>
 
-    <!-- APP -->
     <div id="app-root" class="hidden">
         <nav class="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 shadow-sm">
             <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
@@ -132,10 +129,8 @@
 
         <main class="max-w-7xl mx-auto px-4 mt-8 space-y-8">
 
-            <!-- STATS -->
             <section id="stats-row" class="grid grid-cols-2 md:grid-cols-4 gap-4 enter-item"></section>
 
-            <!-- TABS -->
             <div class="flex flex-wrap gap-2 bg-white border border-slate-200 p-2 rounded-2xl shadow-sm enter-item" style="animation-delay:.05s">
                 <button class="tab-btn active font-bold text-sm px-5 py-2.5 rounded-xl transition-all" data-tab="sos" onclick="switchTab('sos')"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>SOS Tickets</button>
                 <button class="tab-btn font-bold text-sm px-5 py-2.5 rounded-xl transition-all" data-tab="ideas" onclick="switchTab('ideas')"><i class="fa-solid fa-lightbulb mr-1.5"></i>Student Voice</button>
@@ -143,7 +138,6 @@
                 <button class="tab-btn font-bold text-sm px-5 py-2.5 rounded-xl transition-all" data-tab="posts" onclick="switchTab('posts')"><i class="fa-solid fa-bullhorn mr-1.5"></i>ข่าวประชาสัมพันธ์</button>
             </div>
 
-            <!-- SOS TAB -->
             <section id="tab-sos" class="tab-panel space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <h2 class="text-lg font-bold text-slate-900">รายการแจ้งปัญหา (SOS)</h2>
@@ -166,7 +160,6 @@
                 <div id="sos-container" class="space-y-3"></div>
             </section>
 
-            <!-- IDEAS TAB -->
             <section id="tab-ideas" class="tab-panel space-y-4 hidden">
                 <h2 class="text-lg font-bold text-slate-900">ไอเดียนักเรียน (Student Voice)</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -181,7 +174,6 @@
                 </div>
             </section>
 
-            <!-- POLLS TAB -->
             <section id="tab-polls" class="tab-panel space-y-6 hidden">
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg font-bold text-slate-900">จัดการโพล</h2>
@@ -205,7 +197,6 @@
                 <div id="polls-container" class="space-y-4"></div>
             </section>
 
-            <!-- POSTS TAB -->
             <section id="tab-posts" class="tab-panel space-y-6 hidden">
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg font-bold text-slate-900">ข่าวประชาสัมพันธ์</h2>
@@ -234,21 +225,25 @@
         </main>
     </div>
 
-    <!-- SOS IMAGE LIGHTBOX -->
     <div id="image-lightbox" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[150] hidden items-center justify-center p-4" onclick="closeLightbox()">
-        <img id="lightbox-img" src="" class="max-w-full max-h-full rounded-2xl shadow-2xl">
+        <img id="lightbox-img" src="" class="max-w-full max-h-full rounded-2xl shadow-2xl" onclick="event.stopPropagation()">
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ⚠️ ใส่ URL และ ANON_KEY จากโปรเจกต์ Supabase เดียวกับ index.html ⚠️
+        // ⚠️ Replace with your actual Supabase Project URL and Anon Key ⚠️
         const SUPABASE_URL = "YOUR_SUPABASE_URL";
         const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         function escapeHTML(str) {
             if (str === null || str === undefined) return '';
-            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
 
         let toastTimeout;
@@ -256,13 +251,24 @@
             const toast = document.getElementById('app-toast');
             const messageSpan = document.getElementById('app-toast-message');
             const iconDiv = document.getElementById('app-toast-icon');
+            
             toast.className = 'fixed bottom-6 right-6 md:bottom-10 md:right-10 p-4 pr-6 rounded-2xl shadow-xl z-[200] flex items-center gap-3 max-w-sm transition-all text-white';
-            if (type === 'error') { toast.classList.add('bg-red-800'); iconDiv.innerHTML = '<i class="fa-solid fa-circle-exclamation text-white"></i>'; }
-            else if (type === 'success') { toast.classList.add('bg-emerald-600'); iconDiv.innerHTML = '<i class="fa-solid fa-circle-check text-white"></i>'; }
-            else if (type === 'loading') { toast.classList.add('bg-blue-600'); iconDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-white"></i>'; }
+            
+            if (type === 'error') { 
+                toast.classList.add('bg-red-800'); 
+                iconDiv.innerHTML = '<i class="fa-solid fa-circle-exclamation text-white"></i>'; 
+            } else if (type === 'success') { 
+                toast.classList.add('bg-emerald-600'); 
+                iconDiv.innerHTML = '<i class="fa-solid fa-circle-check text-white"></i>'; 
+            } else if (type === 'loading') { 
+                toast.classList.add('bg-blue-600'); 
+                iconDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-white"></i>'; 
+            }
+            
             messageSpan.textContent = message;
             toast.classList.remove('hidden');
             toast.style.animation = 'toastPopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+            
             clearTimeout(toastTimeout);
             if (duration > 0) {
                 toastTimeout = setTimeout(() => {
@@ -273,7 +279,7 @@
         }
 
         // ==================================================
-        // 🔐 AUTH
+        // 🔐 AUTHENTICATION
         // ==================================================
         let currentAdmin = null;
 
@@ -281,11 +287,15 @@
             e.preventDefault();
             const email = document.getElementById('login_email').value.trim();
             const password = document.getElementById('login_password').value;
+            
+            showToast('กำลังเข้าสู่ระบบ...', 'loading', 0);
             const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            
             if (error) {
                 showToast('เข้าสู่ระบบไม่สำเร็จ ตรวจสอบอีเมล/รหัสผ่านอีกครั้ง', 'error');
             } else {
                 showToast('เข้าสู่ระบบสำเร็จ', 'success');
+                checkAdminSession();
             }
         }
 
@@ -326,7 +336,7 @@
         }
 
         // ==================================================
-        // 🧭 TABS
+        // 🧭 TABS MANAGEMENT
         // ==================================================
         function switchTab(tab) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
@@ -344,7 +354,7 @@
         }
 
         // ==================================================
-        // 📊 STATS
+        // 📊 DASHBOARD STATS
         // ==================================================
         async function fetchStats() {
             const row = document.getElementById('stats-row');
@@ -393,16 +403,15 @@
                 return;
             }
 
-            container.innerHTML = '';
-            for (const t of tickets) {
+            const cardsHTML = await Promise.all(tickets.map(async (t) => {
                 let imgTag = '';
                 if (t.image_path) {
                     const { data: signed } = await supabaseClient.storage.from('sos-images').createSignedUrl(t.image_path, 3600);
                     if (signed?.signedUrl) {
-                        imgTag = `<img src="${signed.signedUrl}" onclick="openLightbox('${signed.signedUrl}')" class="w-16 h-16 rounded-xl object-cover border border-slate-200 cursor-pointer shrink-0">`;
+                        imgTag = `<img src="${escapeHTML(signed.signedUrl)}" onclick="openLightbox(this.src)" class="w-16 h-16 rounded-xl object-cover border border-slate-200 cursor-pointer shrink-0" alt="SOS Attachment">`;
                     }
                 }
-                container.innerHTML += `
+                return `
                     <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm enter-item">
                         <div class="flex items-start gap-4">
                             ${imgTag}
@@ -425,7 +434,9 @@
                             </div>
                         </div>
                     </div>`;
-            }
+            }));
+
+            container.innerHTML = cardsHTML.join('');
         }
 
         function statusLabel(s) {
@@ -437,6 +448,7 @@
             document.getElementById('image-lightbox').classList.remove('hidden');
             document.getElementById('image-lightbox').classList.add('flex');
         }
+
         function closeLightbox() {
             document.getElementById('image-lightbox').classList.add('hidden');
             document.getElementById('image-lightbox').classList.remove('flex');
@@ -506,7 +518,7 @@
         }
 
         // ==================================================
-        // 📊 POLLS
+        // 📊 POLLS MANAGEMENT
         // ==================================================
         function openPollForm() { document.getElementById('poll-form-card').classList.remove('hidden'); }
         function closePollForm() {
@@ -516,6 +528,7 @@
                 <input type="text" class="poll-opt-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="ตัวเลือกที่ 1">
                 <input type="text" class="poll-opt-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="ตัวเลือกที่ 2">`;
         }
+        
         function addPollOptionInput() {
             const wrap = document.getElementById('poll-options-inputs');
             const n = wrap.querySelectorAll('.poll-opt-input').length + 1;
@@ -535,7 +548,7 @@
                 return;
             }
 
-            // ปิดโพลเก่าที่เปิดอยู่ทั้งหมดก่อน (มีได้แค่ 1 โพล active ต่อครั้ง)
+            // Deactivate all active polls first
             await supabaseClient.from('polls').update({ is_active: false }).eq('is_active', true);
 
             const { data: poll, error } = await supabaseClient.from('polls').insert([{ question, is_active: true }]).select().single();
@@ -613,7 +626,7 @@
         }
 
         // ==================================================
-        // 📰 PR POSTS
+        // 📰 PR POSTS MANAGEMENT
         // ==================================================
         function openPostForm() { document.getElementById('post-form-card').classList.remove('hidden'); }
         function closePostForm() {
@@ -661,9 +674,15 @@
         }
 
         // ==================================================
-        // ⚙️ INIT
+        // ⚙️ INITIALIZATION
         // ==================================================
-        supabaseClient.auth.onAuthStateChange(() => checkAdminSession());
+        document.addEventListener('DOMContentLoaded', checkAdminSession);
+        
+        supabaseClient.auth.onAuthStateChange((event) => {
+            if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+                checkAdminSession();
+            }
+        });
     </script>
 </body>
 </html>

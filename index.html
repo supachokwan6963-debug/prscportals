@@ -623,18 +623,21 @@
             });
         }
 
-        // 🗳️ ดึงและลงคะแนนโพล
+        // 🗳️ ดึงและลงคะแนนโพล (ฉบับปรับแก้: ดึงข้อมูลแบบ 2 ขั้นตอน ชัวร์ 100%)
         async function fetchActivePoll() {
             const card = document.getElementById('active-poll-card');
-            const { data: poll, error } = await supabaseClient
+            
+            // 1. ดึงข้อมูลโพลที่เปิดใช้อยู่ (is_active = true) รายการล่าสุด
+            const { data: poll, error: pollError } = await supabaseClient
                 .from('polls')
-                .select('*, poll_options(*)')
+                .select('*')
                 .eq('is_active', true)
                 .order('created_at', { ascending: false })
                 .limit(1)
                 .maybeSingle();
 
-            if (error || !poll) {
+            if (pollError || !poll) {
+                if (pollError) console.error('fetchActivePoll error:', pollError);
                 card.innerHTML = `
                     <div class="text-center py-8 text-slate-400">
                         <i class="fa-solid fa-square-poll-vertical text-4xl mb-3 opacity-30"></i>
@@ -642,6 +645,18 @@
                     </div>`;
                 return;
             }
+
+            // 2. ดึงตัวเลือก (poll_options) ของโพลนี้แยกต่างหาก
+            const { data: options, error: optError } = await supabaseClient
+                .from('poll_options')
+                .select('*')
+                .eq('poll_id', poll.id);
+
+            if (optError) {
+                console.error('fetchActivePoll options error:', optError);
+            }
+
+            poll.poll_options = options || [];
 
             const hasVoted = localStorage.getItem(`voted_poll_${poll.id}`);
             const totalVotes = (poll.poll_options || []).reduce((sum, opt) => sum + (opt.votes_count || 0), 0);

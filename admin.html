@@ -439,15 +439,15 @@
             ]);
 
             const cards = [
-                { label: 'SOS รอดำเนินการ', value: sosRes.count ?? '–', icon: 'fa-triangle-exclamation', color: 'red' },
-                { label: 'ไอเดียรออนุมัติ', value: ideasRes.count ?? '–', icon: 'fa-lightbulb', color: 'amber' },
-                { label: 'โพลที่เปิดอยู่', value: pollRes.count ?? '–', icon: 'fa-square-poll-vertical', color: 'blue' },
-                { label: 'ข่าวทั้งหมด', value: postsRes.count ?? '–', icon: 'fa-bullhorn', color: 'emerald' },
+                { label: 'SOS รอดำเนินการ', value: sosRes.count ?? '–', icon: 'fa-triangle-exclamation', colorClass: 'bg-red-100 text-red-700' },
+                { label: 'ไอเดียรออนุมัติ', value: ideasRes.count ?? '–', icon: 'fa-lightbulb', colorClass: 'bg-amber-100 text-amber-700' },
+                { label: 'โพลที่เปิดอยู่', value: pollRes.count ?? '–', icon: 'fa-square-poll-vertical', colorClass: 'bg-blue-100 text-blue-700' },
+                { label: 'ข่าวทั้งหมด', value: postsRes.count ?? '–', icon: 'fa-bullhorn', colorClass: 'bg-emerald-100 text-emerald-700' },
             ];
 
             row.innerHTML = cards.map(c => `
                 <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-4">
-                    <div class="w-11 h-11 rounded-xl bg-${c.color}-100 text-${c.color}-700 flex items-center justify-center text-lg shrink-0">
+                    <div class="w-11 h-11 rounded-xl ${c.colorClass} flex items-center justify-center text-lg shrink-0">
                         <i class="fa-solid ${c.icon}"></i>
                     </div>
                     <div>
@@ -465,6 +465,10 @@
             const container = document.getElementById('sos-container');
             const statusFilter = document.getElementById('sos_filter_status').value;
             const categoryFilter = document.getElementById('sos_filter_category').value;
+
+            // Reset Master Checkbox
+            const masterCb = document.getElementById('sos_master_checkbox');
+            if (masterCb) masterCb.checked = false;
 
             let query = supabaseClient.from('sos_tickets').select('*').order('created_at', { ascending: false });
             if (statusFilter !== 'all') query = query.eq('status', statusFilter);
@@ -548,7 +552,7 @@
         }
 
         // ==================================================
-        // 📊 EXPORT TO CSV (ข้อ 1)
+        // 📊 EXPORT TO CSV
         // ==================================================
         async function exportSOSToCSV() {
             if (!supabaseClient) return;
@@ -708,95 +712,83 @@
             fetchStats();
         }
 
-// 🗳️ ดึงโพลฝั่งแอดมิน (ชัวร์ 100%)
-async function fetchPollsAdmin() {
-    if (!supabaseClient) return;
-    const container = document.getElementById('polls-container');
-    if (!container) return;
+        async function fetchPollsAdmin() {
+            if (!supabaseClient) return;
+            const container = document.getElementById('polls-container');
+            if (!container) return;
 
-    try {
-        // 1. ดึงรายการโพลทั้งหมด
-        const { data: polls, error: pollError } = await supabaseClient
-            .from('polls')
-            .select('*')
-            .order('created_at', { ascending: false });
+            try {
+                const { data: polls, error: pollError } = await supabaseClient
+                    .from('polls')
+                    .select('*')
+                    .order('created_at', { ascending: false });
 
-        if (pollError) {
-            console.error("❌ Admin Polls Query Error:", pollError);
+                if (pollError || !polls || polls.length === 0) {
+                    container.innerHTML = `
+                        <div class="bg-white rounded-3xl p-10 border border-slate-100 text-center text-slate-400">
+                            <i class="fa-solid fa-square-poll-vertical text-3xl mb-3 opacity-30"></i>
+                            <p class="text-sm">ยังไม่มีโพลในระบบ</p>
+                        </div>`;
+                    return;
+                }
+
+                const pollIds = polls.map(p => p.id);
+                const { data: options, error: optError } = await supabaseClient
+                    .from('poll_options')
+                    .select('*')
+                    .in('poll_id', pollIds);
+
+                polls.forEach(p => {
+                    p.poll_options = (options || []).filter(o => o.poll_id === p.id);
+                });
+
+                container.innerHTML = polls.map(poll => {
+                    const totalVotes = (poll.poll_options || []).reduce((sum, opt) => sum + (opt.votes_count || 0), 0);
+                    
+                    const optionsList = (poll.poll_options || []).map(opt => {
+                        const votes = opt.votes_count || 0;
+                        const percent = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
+                        return `
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-xs font-semibold text-slate-700">
+                                    <span>${escapeHTML(opt.option_text)}</span>
+                                    <span class="text-slate-500">${votes} โหวต (${percent}%)</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                    <div class="bg-red-800 h-2 rounded-full" style="width: ${percent}%"></div>
+                                </div>
+                            </div>`;
+                    }).join('');
+
+                    return `
+                        <div class="bg-white border ${poll.is_active ? 'border-red-200 ring-2 ring-red-800/10' : 'border-slate-200'} rounded-3xl p-6 shadow-sm space-y-4">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="status-pill ${poll.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}">
+                                        ${poll.is_active ? '● กำลังเปิดโหวต' : 'ปิดโหวตแล้ว'}
+                                    </span>
+                                    <span class="text-xs text-slate-400"><i class="fa-solid fa-users mr-1"></i>รวม ${totalVotes} โหวต</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="togglePollActive('${poll.id}', ${!poll.is_active})" class="text-xs font-bold px-3 py-1.5 rounded-xl border ${poll.is_active ? 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100' : 'bg-red-800 text-white hover:bg-red-900'} transition-all">
+                                        ${poll.is_active ? 'ปิดโหวต' : 'เปิดใช้งานโพลนี้'}
+                                    </button>
+                                    <button onclick="deletePoll('${poll.id}')" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-red-50 text-red-800 hover:bg-red-100 transition-all">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <h3 class="font-bold text-base text-slate-900">${escapeHTML(poll.question)}</h3>
+                            <div class="space-y-3 pt-2 border-t border-slate-100">${optionsList}</div>
+                        </div>`;
+                }).join('');
+
+            } catch (err) {
+                console.error("❌ Unexpected fetchPollsAdmin Error:", err);
+            }
         }
 
-        if (pollError || !polls || polls.length === 0) {
-            container.innerHTML = `
-                <div class="bg-white rounded-3xl p-10 border border-slate-100 text-center text-slate-400">
-                    <i class="fa-solid fa-square-poll-vertical text-3xl mb-3 opacity-30"></i>
-                    <p class="text-sm">ยังไม่มีโพลในระบบ</p>
-                </div>`;
-            return;
-        }
-
-        // 2. ดึงตัวเลือกทั้งหมดมาแมปเข้ากับแต่ละโพล
-        const pollIds = polls.map(p => p.id);
-        const { data: options, error: optError } = await supabaseClient
-            .from('poll_options')
-            .select('*')
-            .in('poll_id', pollIds);
-
-        if (optError) {
-            console.error("❌ Admin Poll Options Query Error:", optError);
-        }
-
-        polls.forEach(p => {
-            p.poll_options = (options || []).filter(o => o.poll_id === p.id);
-        });
-
-        // 3. แสดงผลโพล
-        container.innerHTML = polls.map(poll => {
-            const totalVotes = (poll.poll_options || []).reduce((sum, opt) => sum + (opt.votes_count || 0), 0);
-            
-            const optionsList = (poll.poll_options || []).map(opt => {
-                const votes = opt.votes_count || 0;
-                const percent = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
-                return `
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-xs font-semibold text-slate-700">
-                            <span>${escapeHTML(opt.option_text)}</span>
-                            <span class="text-slate-500">${votes} โหวต (${percent}%)</span>
-                        </div>
-                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                            <div class="bg-red-800 h-2 rounded-full" style="width: ${percent}%"></div>
-                        </div>
-                    </div>`;
-            }).join('');
-
-            return `
-                <div class="bg-white border ${poll.is_active ? 'border-red-200 ring-2 ring-red-800/10' : 'border-slate-200'} rounded-3xl p-6 shadow-sm space-y-4">
-                    <div class="flex flex-wrap items-center justify-between gap-2">
-                        <div class="flex items-center gap-2">
-                            <span class="status-pill ${poll.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}">
-                                ${poll.is_active ? '● กำลังเปิดโหวต' : 'ปิดโหวตแล้ว'}
-                            </span>
-                            <span class="text-xs text-slate-400"><i class="fa-solid fa-users mr-1"></i>รวม ${totalVotes} โหวต</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="togglePollActive('${poll.id}', ${poll.is_active})" class="text-xs font-bold px-3 py-1.5 rounded-xl border ${poll.is_active ? 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100' : 'bg-red-800 text-white hover:bg-red-900'} transition-all">
-                                ${poll.is_active ? 'ปิดโหวต' : 'เปิดใช้งานโพลนี้'}
-                            </button>
-                            <button onclick="deletePoll('${poll.id}')" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-red-50 text-red-800 hover:bg-red-100 transition-all">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <h3 class="font-bold text-base text-slate-900">${escapeHTML(poll.question)}</h3>
-                    <div class="space-y-3 pt-2 border-t border-slate-100">${optionsList}</div>
-                </div>`;
-        }).join('');
-
-    } catch (err) {
-        console.error("❌ Unexpected fetchPollsAdmin Error:", err);
-    }
-}
-
-        async function togglePoll(id, activate) {
+        async function togglePollActive(id, activate) {
             if (!supabaseClient) return;
             if (activate) {
                 await supabaseClient.from('polls').update({ is_active: false }).eq('is_active', true);

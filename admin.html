@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PRSC Admin - สภานักเรียนโรงเรียนพิริยาลัยจังหวัดแพร่</title>
-    <link rel="icon" href="data:,"> <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="data:,"> 
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -154,16 +155,23 @@
             </div>
 
             <section id="tab-sos" class="tab-panel space-y-4">
-                <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                     <h2 class="text-lg font-bold text-slate-900">รายการแจ้งปัญหา (SOS)</h2>
-                    <div class="flex gap-2">
-                        <select id="sos_filter_status" onchange="fetchSOSTickets()" class="text-sm bg-white border border-slate-200 rounded-xl px-3 py-2">
+                    
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="exportSOSToCSV()" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold px-3 py-2 rounded-xl transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-excel"></i> ดาวน์โหลด CSV
+                        </button>
+
+                        <div class="h-4 w-[1px] bg-slate-200 mx-1 hidden sm:block"></div>
+
+                        <select id="sos_filter_status" onchange="fetchSOSTickets()" class="text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none">
                             <option value="all">ทุกสถานะ</option>
                             <option value="pending">รอดำเนินการ</option>
                             <option value="in_progress">กำลังดำเนินการ</option>
                             <option value="resolved">แก้ไขแล้ว</option>
                         </select>
-                        <select id="sos_filter_category" onchange="fetchSOSTickets()" class="text-sm bg-white border border-slate-200 rounded-xl px-3 py-2">
+                        <select id="sos_filter_category" onchange="fetchSOSTickets()" class="text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none">
                             <option value="all">ทุกหมวดหมู่</option>
                             <option value="สถานที่/อาคาร">อาคารสถานที่</option>
                             <option value="การเรียน/วิชาการ">การเรียน/วิชาการ</option>
@@ -172,18 +180,55 @@
                         </select>
                     </div>
                 </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-100/70 px-4 py-2.5 rounded-xl text-xs border border-slate-200">
+                    <label class="flex items-center gap-2 font-bold text-slate-700 cursor-pointer">
+                        <input type="checkbox" id="sos_master_checkbox" onchange="toggleSelectAllSOS(this)" class="w-4 h-4 accent-red-800 rounded cursor-pointer">
+                        <span>เลือกทั้งหมด</span>
+                        <span id="sos_selected_count" class="text-slate-400 font-normal ml-1">(เลือกอยู่ 0 รายการ)</span>
+                    </label>
+
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-slate-600">จัดการที่เลือก:</span>
+                        <select id="sos_bulk_action" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-bold">
+                            <option value="">-- เลือกการกระทำ --</option>
+                            <option value="status_in_progress">เปลี่ยนเป็น "กำลังดำเนินการ"</option>
+                            <option value="status_resolved">เปลี่ยนเป็น "แก้ไขแล้ว"</option>
+                            <option value="delete">ลบรายการที่เลือก</option>
+                        </select>
+                        <button onclick="applySOSBulkAction()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-3 py-1 rounded-lg transition-all">ปรับใช้</button>
+                    </div>
+                </div>
+
                 <div id="sos-container" class="space-y-3"></div>
             </section>
 
             <section id="tab-ideas" class="tab-panel space-y-4 hidden">
-                <h2 class="text-lg font-bold text-slate-900">ไอเดียนักเรียน (Student Voice)</h2>
+                <div class="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <h2 class="text-lg font-bold text-slate-900">ไอเดียนักเรียน (Student Voice)</h2>
+                    <button onclick="bulkApproveIdeas()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-md transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-check-double"></i> อนุมัติทั้งหมดที่เลือก
+                    </button>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <h3 class="text-sm font-bold text-amber-700 mb-3"><i class="fa-solid fa-hourglass-half mr-1.5"></i>รออนุมัติ</h3>
+                        <div class="flex items-center justify-between mb-3 px-1">
+                            <h3 class="text-sm font-bold text-amber-700"><i class="fa-solid fa-hourglass-half mr-1.5"></i>รออนุมัติ</h3>
+                            <label class="flex items-center gap-1.5 text-xs text-slate-500 font-bold cursor-pointer">
+                                <input type="checkbox" onchange="toggleSelectAllIdeas('pending', this)" class="accent-amber-600 rounded"> เลือกทั้งหมด
+                            </label>
+                        </div>
                         <div id="ideas-pending-container" class="space-y-2"></div>
                     </div>
+
                     <div>
-                        <h3 class="text-sm font-bold text-emerald-700 mb-3"><i class="fa-solid fa-circle-check mr-1.5"></i>อนุมัติแล้ว (แสดงบน Portal)</h3>
+                        <div class="flex items-center justify-between mb-3 px-1">
+                            <h3 class="text-sm font-bold text-emerald-700"><i class="fa-solid fa-circle-check mr-1.5"></i>อนุมัติแล้ว (แสดงบน Portal)</h3>
+                            <label class="flex items-center gap-1.5 text-xs text-slate-500 font-bold cursor-pointer">
+                                <input type="checkbox" onchange="toggleSelectAllIdeas('approved', this)" class="accent-emerald-600 rounded"> เลือกทั้งหมด
+                            </label>
+                        </div>
                         <div id="ideas-approved-container" class="space-y-2"></div>
                     </div>
                 </div>
@@ -240,16 +285,14 @@
         </main>
     </div>
 
-    <div id="image-lightbox" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[150] hidden items-center justify-center p-4" onclick="closeLightbox()">
+    <div id="image-lightbox" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[150] hidden items-center justify-center p-4 cursor-pointer" onclick="closeLightbox()">
         <img id="lightbox-img" src="" class="max-w-full max-h-full rounded-2xl shadow-2xl">
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <script src="config.js"></script>
 
     <script>
-        // ระบบตรวจสอบความถูกต้องของ SUPABASE_URL จาก config.js
         let supabaseClient = null;
 
         function checkConfigValid() {
@@ -327,7 +370,6 @@
             const configOverlay = document.getElementById('config-error-overlay');
             const appRoot = document.getElementById('app-root');
 
-            // หาก config.js มีปัญหา ป้องกันไม่ให้เกิดจอขาว
             if (!checkConfigValid()) {
                 authOverlay.classList.add('hidden');
                 deniedOverlay.classList.add('hidden');
@@ -416,7 +458,7 @@
         }
 
         // ==================================================
-        // 🚨 SOS TICKETS
+        // 🚨 SOS TICKETS & BULK ACTIONS
         // ==================================================
         async function fetchSOSTickets() {
             if (!supabaseClient) return;
@@ -432,6 +474,7 @@
 
             if (error || !tickets || tickets.length === 0) {
                 container.innerHTML = `<div class="bg-white rounded-3xl p-10 border border-slate-100 text-center text-slate-400"><i class="fa-solid fa-inbox text-3xl mb-3 opacity-30"></i><p class="text-sm">ไม่มีรายการในหมวดนี้</p></div>`;
+                updateSelectedSOSCount();
                 return;
             }
 
@@ -444,61 +487,101 @@
                     }
                 }
                 return `
-                    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm enter-item">
-                        <div class="flex items-start gap-4">
-                            ${imgTag}
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 flex-wrap mb-1.5">
-                                    <span class="status-pill status-${t.status}">${statusLabel(t.status)}</span>
-                                    <span class="text-[10px] font-bold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full uppercase tracking-wider">${escapeHTML(t.category || '-')}</span>
-                                    ${t.reporter_grade ? `<span class="text-[10px] text-slate-400">ม.${escapeHTML(t.reporter_grade)}/${escapeHTML(t.reporter_room || '-')}</span>` : ''}
-                                </div>
-                                <p class="text-sm text-slate-800 leading-relaxed">${escapeHTML(t.detail)}</p>
-                                <p class="text-[11px] text-slate-400 mt-2">${t.created_at ? new Date(t.created_at).toLocaleString('th-TH') : ''}</p>
+                    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm enter-item flex items-start gap-4">
+                        <input type="checkbox" class="sos-item-checkbox mt-1 w-4 h-4 accent-red-800 rounded cursor-pointer" value="${t.id}" onchange="updateSelectedSOSCount()">
+                        ${imgTag}
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap mb-1.5">
+                                <span class="status-pill status-${t.status}">${statusLabel(t.status)}</span>
+                                <span class="text-[10px] font-bold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full uppercase tracking-wider">${escapeHTML(t.category || '-')}</span>
+                                ${t.reporter_grade ? `<span class="text-[10px] text-slate-400">ม.${escapeHTML(t.reporter_grade)}/${escapeHTML(t.reporter_room || '-')}</span>` : ''}
                             </div>
-                            <div class="flex flex-col gap-2 shrink-0">
-                                <select onchange="updateSOSStatus('${t.id}', this.value)" class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5">
-                                    <option value="pending" ${t.status === 'pending' ? 'selected' : ''}>รอดำเนินการ</option>
-                                    <option value="in_progress" ${t.status === 'in_progress' ? 'selected' : ''}>กำลังดำเนินการ</option>
-                                    <option value="resolved" ${t.status === 'resolved' ? 'selected' : ''}>แก้ไขแล้ว</option>
-                                </select>
-                                <button onclick="deleteSOS('${t.id}')" class="text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i>ลบ</button>
-                            </div>
+                            <p class="text-sm text-slate-800 leading-relaxed">${escapeHTML(t.detail)}</p>
+                            <p class="text-[11px] text-slate-400 mt-2">${t.created_at ? new Date(t.created_at).toLocaleString('th-TH') : ''}</p>
+                        </div>
+                        <div class="flex flex-col gap-2 shrink-0">
+                            <select onchange="updateSOSStatus('${t.id}', this.value)" class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5">
+                                <option value="pending" ${t.status === 'pending' ? 'selected' : ''}>รอดำเนินการ</option>
+                                <option value="in_progress" ${t.status === 'in_progress' ? 'selected' : ''}>กำลังดำเนินการ</option>
+                                <option value="resolved" ${t.status === 'resolved' ? 'selected' : ''}>แก้ไขแล้ว</option>
+                            </select>
+                            <button onclick="deleteSOS('${t.id}')" class="text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i>ลบ</button>
                         </div>
                     </div>`;
             }));
 
             container.innerHTML = cards.join('');
+            updateSelectedSOSCount();
         }
 
-        function statusLabel(s) {
-            return { pending: 'รอดำเนินการ', in_progress: 'กำลังดำเนินการ', resolved: 'แก้ไขแล้ว' }[s] || s;
+        function toggleSelectAllSOS(master) {
+            document.querySelectorAll('.sos-item-checkbox').forEach(cb => cb.checked = master.checked);
+            updateSelectedSOSCount();
         }
 
-        function openLightbox(url) {
-            document.getElementById('lightbox-img').src = url;
-            document.getElementById('image-lightbox').classList.remove('hidden');
-            document.getElementById('image-lightbox').classList.add('flex');
+        function updateSelectedSOSCount() {
+            const selected = document.querySelectorAll('.sos-item-checkbox:checked').length;
+            document.getElementById('sos_selected_count').textContent = `(เลือกอยู่ ${selected} รายการ)`;
         }
 
-        function closeLightbox() {
-            document.getElementById('image-lightbox').classList.add('hidden');
-            document.getElementById('image-lightbox').classList.remove('flex');
+        async function applySOSBulkAction() {
+            const action = document.getElementById('sos_bulk_action').value;
+            const selectedIds = Array.from(document.querySelectorAll('.sos-item-checkbox:checked')).map(cb => cb.value);
+
+            if (!action) return alert('โปรดเลือกการกระทำที่ต้องการ');
+            if (selectedIds.length === 0) return alert('โปรดเลือกอย่างน้อย 1 รายการ');
+
+            if (action === 'delete') {
+                if (!confirm(`ยืนยันการลบ ${selectedIds.length} รายการที่เลือก?`)) return;
+                const { error } = await supabaseClient.from('sos_tickets').delete().in('id', selectedIds);
+                if (!error) showToast('ลบรายการที่เลือกเรียบร้อยแล้ว', 'success');
+                else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
+            } else if (action.startsWith('status_')) {
+                const newStatus = action.replace('status_', '');
+                const { error } = await supabaseClient.from('sos_tickets').update({ status: newStatus }).in('id', selectedIds);
+                if (!error) showToast('อัปเดตสถานะกลุ่มเรียบร้อยแล้ว', 'success');
+                else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
+            }
+
+            fetchStats();
+            fetchSOSTickets();
         }
 
-        async function updateSOSStatus(id, status) {
+        // ==================================================
+        // 📊 EXPORT TO CSV (ข้อ 1)
+        // ==================================================
+        async function exportSOSToCSV() {
             if (!supabaseClient) return;
-            const { error } = await supabaseClient.from('sos_tickets').update({ status }).eq('id', id);
-            if (!error) { showToast('อัปเดตสถานะแล้ว', 'success'); fetchStats(); }
-            else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
-        }
+            showToast('กำลังเตรียมข้อมูล CSV...', 'loading', 1500);
 
-        async function deleteSOS(id) {
-            if (!confirm('ยืนยันการลบรายการนี้?')) return;
-            if (!supabaseClient) return;
-            const { error } = await supabaseClient.from('sos_tickets').delete().eq('id', id);
-            if (!error) { showToast('ลบรายการแล้ว', 'success'); fetchSOSTickets(); fetchStats(); }
-            else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
+            const { data: tickets, error } = await supabaseClient.from('sos_tickets').select('*').order('created_at', { ascending: false });
+
+            if (error || !tickets || tickets.length === 0) {
+                alert('ไม่มีข้อมูลสำหรับส่งออก');
+                return;
+            }
+
+            let csvContent = "\uFEFF"; // UTF-8 BOM สำหรับอ่านภาษาไทยใน Excel
+            csvContent += "ID,หมวดหมู่,รายละเอียด,ชั้น,ห้อง,สถานะ,วันที่แจ้ง\n";
+
+            tickets.forEach(t => {
+                const cleanDetail = `"${(t.detail || '').replace(/"/g, '""')}"`;
+                const cleanCat = `"${(t.category || '').replace(/"/g, '""')}"`;
+                const grade = t.reporter_grade || '';
+                const room = t.reporter_room || '';
+                const dateStr = t.created_at ? new Date(t.created_at).toLocaleString('th-TH') : '';
+                csvContent += `${t.id},${cleanCat},${cleanDetail},${grade},${room},${statusLabel(t.status)},${dateStr}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `PRSC_SOS_Report_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('ดาวน์โหลดไฟล์ CSV สำเร็จ', 'success');
         }
 
         // ==================================================
@@ -522,7 +605,10 @@
 
             pendingContainer.innerHTML = pending.length ? pending.map(idea => `
                 <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between gap-3">
-                    <p class="text-sm text-amber-900 font-medium">${escapeHTML(idea.title)}</p>
+                    <div class="flex items-center gap-2.5 overflow-hidden">
+                        <input type="checkbox" class="idea-cb-pending w-4 h-4 accent-amber-600 rounded cursor-pointer" value="${idea.id}">
+                        <p class="text-sm text-amber-900 font-medium truncate">${escapeHTML(idea.title)}</p>
+                    </div>
                     <div class="flex gap-2 shrink-0">
                         <button onclick="approveIdea('${idea.id}')" class="w-8 h-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center text-xs"><i class="fa-solid fa-check"></i></button>
                         <button onclick="deleteIdea('${idea.id}')" class="w-8 h-8 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
@@ -531,12 +617,33 @@
 
             approvedContainer.innerHTML = approved.length ? approved.map(idea => `
                 <div class="bg-white border border-slate-100 rounded-xl p-4 flex items-center justify-between gap-3 shadow-sm">
-                    <div>
-                        <p class="text-sm text-slate-800 font-medium">${escapeHTML(idea.title)}</p>
-                        <p class="text-[11px] text-slate-400 mt-0.5"><i class="fa-solid fa-caret-up text-amber-500"></i> ${idea.votes || 0} โหวต</p>
+                    <div class="flex items-center gap-2.5 overflow-hidden">
+                        <input type="checkbox" class="idea-cb-approved w-4 h-4 accent-emerald-600 rounded cursor-pointer" value="${idea.id}">
+                        <div>
+                            <p class="text-sm text-slate-800 font-medium truncate">${escapeHTML(idea.title)}</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5"><i class="fa-solid fa-caret-up text-amber-500"></i> ${idea.votes || 0} โหวต</p>
+                        </div>
                     </div>
                     <button onclick="deleteIdea('${idea.id}')" class="text-xs text-red-600 hover:text-red-800 font-medium shrink-0"><i class="fa-solid fa-trash"></i></button>
                 </div>`).join('') : `<p class="text-sm text-slate-400 bg-slate-50 rounded-xl p-4 border border-dashed border-slate-200">ยังไม่มีไอเดียที่อนุมัติ</p>`;
+        }
+
+        function toggleSelectAllIdeas(type, master) {
+            document.querySelectorAll(`.idea-cb-${type}`).forEach(cb => cb.checked = master.checked);
+        }
+
+        async function bulkApproveIdeas() {
+            const selectedIds = Array.from(document.querySelectorAll('.idea-cb-pending:checked')).map(cb => cb.value);
+            if (selectedIds.length === 0) return alert('กรุณาเลือกไอเดียที่ต้องการอนุมัติอย่างน้อย 1 รายการ');
+
+            const { error } = await supabaseClient.from('student_ideas').update({ is_approved: true }).in('id', selectedIds);
+            if (!error) {
+                showToast(`อนุมัติ ${selectedIds.length} ไอเดียเรียบร้อยแล้ว`, 'success');
+                fetchStats();
+                fetchIdeasAdmin();
+            } else {
+                showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
+            }
         }
 
         async function approveIdea(id) {
@@ -713,6 +820,39 @@
             if (!supabaseClient) return;
             const { error } = await supabaseClient.from('pr_posts').delete().eq('id', id);
             if (!error) { showToast('ลบข่าวแล้ว', 'success'); fetchPostsAdmin(); fetchStats(); }
+            else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
+        }
+
+        // ==================================================
+        // 🛠️ UTILS & LIGHTBOX
+        // ==================================================
+        function statusLabel(s) {
+            return { pending: 'รอดำเนินการ', in_progress: 'กำลังดำเนินการ', resolved: 'แก้ไขแล้ว' }[s] || s;
+        }
+
+        function openLightbox(url) {
+            document.getElementById('lightbox-img').src = url;
+            document.getElementById('image-lightbox').classList.remove('hidden');
+            document.getElementById('image-lightbox').classList.add('flex');
+        }
+
+        function closeLightbox() {
+            document.getElementById('image-lightbox').classList.add('hidden');
+            document.getElementById('image-lightbox').classList.remove('flex');
+        }
+
+        async function updateSOSStatus(id, status) {
+            if (!supabaseClient) return;
+            const { error } = await supabaseClient.from('sos_tickets').update({ status }).eq('id', id);
+            if (!error) { showToast('อัปเดตสถานะแล้ว', 'success'); fetchStats(); }
+            else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
+        }
+
+        async function deleteSOS(id) {
+            if (!confirm('ยืนยันการลบรายการนี้?')) return;
+            if (!supabaseClient) return;
+            const { error } = await supabaseClient.from('sos_tickets').delete().eq('id', id);
+            if (!error) { showToast('ลบรายการแล้ว', 'success'); fetchSOSTickets(); fetchStats(); }
             else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
         }
 

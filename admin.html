@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PRSC Admin - สภานักเรียนโรงเรียนพิริยาลัยจังหวัดแพร่</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="data:,"> <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,8 +30,8 @@
             outline: none;
         }
 
-        #auth-overlay, #denied-overlay { transition: opacity 0.3s ease-out; }
-        #auth-overlay:not(.hidden) > div, #denied-overlay:not(.hidden) > div {
+        #auth-overlay, #denied-overlay, #config-error-overlay { transition: opacity 0.3s ease-out; }
+        #auth-overlay:not(.hidden) > div, #denied-overlay:not(.hidden) > div, #config-error-overlay:not(.hidden) > div {
             animation: dramaticZoom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
         }
         @keyframes dramaticZoom {
@@ -66,6 +66,21 @@
     <div id="app-toast" class="fixed bottom-6 right-6 md:bottom-10 md:right-10 p-4 pr-6 rounded-2xl shadow-xl z-[200] flex items-center gap-3 max-w-sm hidden transition-all text-white">
         <div id="app-toast-icon" class="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-white/20"></div>
         <span id="app-toast-message" class="text-sm font-semibold tracking-wide"></span>
+    </div>
+
+    <div id="config-error-overlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4 hidden">
+        <div class="bg-white border border-slate-100 p-8 md:p-10 rounded-3xl shadow-2xl w-[480px] max-w-full text-center">
+            <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-amber-50 rounded-full text-amber-600 text-2xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h2 class="text-xl font-bold text-slate-900 tracking-tight">เกิดปัญหาการโหลด Config</h2>
+            <p class="text-sm text-slate-500 mt-2 mb-4">ไม่พบไฟล์ <code class="bg-slate-100 text-red-700 px-2 py-0.5 rounded font-mono">config.js</code> หรือการตั้งค่า URL ของ Supabase ไม่ถูกต้อง</p>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-left text-xs font-mono text-slate-600 space-y-1">
+                <p><span class="text-slate-400">// โปรดตรวจสอบว่าไฟล์ config.js มีค่าแบบนี้:</span></p>
+                <p>const SUPABASE_URL = <span class="text-emerald-600">"https://xyz.supabase.co"</span>;</p>
+                <p>const SUPABASE_ANON_KEY = <span class="text-emerald-600">"eyJhbG..."</span>;</p>
+            </div>
+        </div>
     </div>
 
     <div id="auth-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
@@ -226,24 +241,31 @@
     </div>
 
     <div id="image-lightbox" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[150] hidden items-center justify-center p-4" onclick="closeLightbox()">
-        <img id="lightbox-img" src="" class="max-w-full max-h-full rounded-2xl shadow-2xl" onclick="event.stopPropagation()">
+        <img id="lightbox-img" src="" class="max-w-full max-h-full rounded-2xl shadow-2xl">
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="config.js"></script>
+
     <script>
-        // ⚠️ Replace with your actual Supabase Project URL and Anon Key ⚠️
-        const SUPABASE_URL = "YOUR_SUPABASE_URL";
-        const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // ระบบตรวจสอบความถูกต้องของ SUPABASE_URL จาก config.js
+        let supabaseClient = null;
+
+        function checkConfigValid() {
+            return typeof SUPABASE_URL !== 'undefined' && 
+                   typeof SUPABASE_ANON_KEY !== 'undefined' &&
+                   SUPABASE_URL.startsWith('http') && 
+                   SUPABASE_URL !== "YOUR_SUPABASE_URL";
+        }
+
+        if (checkConfigValid()) {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
 
         function escapeHTML(str) {
             if (str === null || str === undefined) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         }
 
         let toastTimeout;
@@ -251,24 +273,13 @@
             const toast = document.getElementById('app-toast');
             const messageSpan = document.getElementById('app-toast-message');
             const iconDiv = document.getElementById('app-toast-icon');
-            
             toast.className = 'fixed bottom-6 right-6 md:bottom-10 md:right-10 p-4 pr-6 rounded-2xl shadow-xl z-[200] flex items-center gap-3 max-w-sm transition-all text-white';
-            
-            if (type === 'error') { 
-                toast.classList.add('bg-red-800'); 
-                iconDiv.innerHTML = '<i class="fa-solid fa-circle-exclamation text-white"></i>'; 
-            } else if (type === 'success') { 
-                toast.classList.add('bg-emerald-600'); 
-                iconDiv.innerHTML = '<i class="fa-solid fa-circle-check text-white"></i>'; 
-            } else if (type === 'loading') { 
-                toast.classList.add('bg-blue-600'); 
-                iconDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-white"></i>'; 
-            }
-            
+            if (type === 'error') { toast.classList.add('bg-red-800'); iconDiv.innerHTML = '<i class="fa-solid fa-circle-exclamation text-white"></i>'; }
+            else if (type === 'success') { toast.classList.add('bg-emerald-600'); iconDiv.innerHTML = '<i class="fa-solid fa-circle-check text-white"></i>'; }
+            else if (type === 'loading') { toast.classList.add('bg-blue-600'); iconDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-white"></i>'; }
             messageSpan.textContent = message;
             toast.classList.remove('hidden');
             toast.style.animation = 'toastPopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
-            
             clearTimeout(toastTimeout);
             if (duration > 0) {
                 toastTimeout = setTimeout(() => {
@@ -285,12 +296,16 @@
 
         async function loginAdmin(e) {
             e.preventDefault();
+            if (!supabaseClient) {
+                showToast('ไม่สามารถเชื่อมต่อ Supabase ได้ ตรวจสอบไฟล์ config.js', 'error');
+                return;
+            }
+
             const email = document.getElementById('login_email').value.trim();
             const password = document.getElementById('login_password').value;
             
-            showToast('กำลังเข้าสู่ระบบ...', 'loading', 0);
+            showToast('กำลังตรวจสอบการเข้าสู่ระบบ...', 'loading', 0);
             const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            
             if (error) {
                 showToast('เข้าสู่ระบบไม่สำเร็จ ตรวจสอบอีเมล/รหัสผ่านอีกครั้ง', 'error');
             } else {
@@ -300,15 +315,30 @@
         }
 
         async function logoutAdmin() {
-            await supabaseClient.auth.signOut();
+            if (supabaseClient) {
+                await supabaseClient.auth.signOut();
+            }
             window.location.reload();
         }
 
         async function checkAdminSession() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
             const authOverlay = document.getElementById('auth-overlay');
             const deniedOverlay = document.getElementById('denied-overlay');
+            const configOverlay = document.getElementById('config-error-overlay');
             const appRoot = document.getElementById('app-root');
+
+            // หาก config.js มีปัญหา ป้องกันไม่ให้เกิดจอขาว
+            if (!checkConfigValid()) {
+                authOverlay.classList.add('hidden');
+                deniedOverlay.classList.add('hidden');
+                appRoot.classList.add('hidden');
+                configOverlay.classList.remove('hidden');
+                return;
+            }
+
+            configOverlay.classList.add('hidden');
+
+            const { data: { session } } = await supabaseClient.auth.getSession();
 
             if (!session) {
                 authOverlay.classList.remove('hidden');
@@ -354,9 +384,10 @@
         }
 
         // ==================================================
-        // 📊 DASHBOARD STATS
+        // 📊 STATS
         // ==================================================
         async function fetchStats() {
+            if (!supabaseClient) return;
             const row = document.getElementById('stats-row');
             const [sosRes, ideasRes, pollRes, postsRes] = await Promise.all([
                 supabaseClient.from('sos_tickets').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
@@ -388,6 +419,7 @@
         // 🚨 SOS TICKETS
         // ==================================================
         async function fetchSOSTickets() {
+            if (!supabaseClient) return;
             const container = document.getElementById('sos-container');
             const statusFilter = document.getElementById('sos_filter_status').value;
             const categoryFilter = document.getElementById('sos_filter_category').value;
@@ -403,12 +435,12 @@
                 return;
             }
 
-            const cardsHTML = await Promise.all(tickets.map(async (t) => {
+            const cards = await Promise.all(tickets.map(async (t) => {
                 let imgTag = '';
                 if (t.image_path) {
                     const { data: signed } = await supabaseClient.storage.from('sos-images').createSignedUrl(t.image_path, 3600);
                     if (signed?.signedUrl) {
-                        imgTag = `<img src="${escapeHTML(signed.signedUrl)}" onclick="openLightbox(this.src)" class="w-16 h-16 rounded-xl object-cover border border-slate-200 cursor-pointer shrink-0" alt="SOS Attachment">`;
+                        imgTag = `<img src="${escapeHTML(signed.signedUrl)}" onclick="openLightbox(this.src)" class="w-16 h-16 rounded-xl object-cover border border-slate-200 cursor-pointer shrink-0">`;
                     }
                 }
                 return `
@@ -436,7 +468,7 @@
                     </div>`;
             }));
 
-            container.innerHTML = cardsHTML.join('');
+            container.innerHTML = cards.join('');
         }
 
         function statusLabel(s) {
@@ -455,6 +487,7 @@
         }
 
         async function updateSOSStatus(id, status) {
+            if (!supabaseClient) return;
             const { error } = await supabaseClient.from('sos_tickets').update({ status }).eq('id', id);
             if (!error) { showToast('อัปเดตสถานะแล้ว', 'success'); fetchStats(); }
             else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
@@ -462,6 +495,7 @@
 
         async function deleteSOS(id) {
             if (!confirm('ยืนยันการลบรายการนี้?')) return;
+            if (!supabaseClient) return;
             const { error } = await supabaseClient.from('sos_tickets').delete().eq('id', id);
             if (!error) { showToast('ลบรายการแล้ว', 'success'); fetchSOSTickets(); fetchStats(); }
             else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
@@ -471,6 +505,7 @@
         // 💡 STUDENT IDEAS
         // ==================================================
         async function fetchIdeasAdmin() {
+            if (!supabaseClient) return;
             const pendingContainer = document.getElementById('ideas-pending-container');
             const approvedContainer = document.getElementById('ideas-approved-container');
 
@@ -505,6 +540,7 @@
         }
 
         async function approveIdea(id) {
+            if (!supabaseClient) return;
             const { error } = await supabaseClient.from('student_ideas').update({ is_approved: true }).eq('id', id);
             if (!error) { showToast('อนุมัติไอเดียแล้ว', 'success'); fetchIdeasAdmin(); fetchStats(); }
             else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
@@ -512,13 +548,14 @@
 
         async function deleteIdea(id) {
             if (!confirm('ยืนยันการลบไอเดียนี้?')) return;
+            if (!supabaseClient) return;
             const { error } = await supabaseClient.from('student_ideas').delete().eq('id', id);
             if (!error) { showToast('ลบไอเดียแล้ว', 'success'); fetchIdeasAdmin(); fetchStats(); }
             else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
         }
 
         // ==================================================
-        // 📊 POLLS MANAGEMENT
+        // 📊 POLLS
         // ==================================================
         function openPollForm() { document.getElementById('poll-form-card').classList.remove('hidden'); }
         function closePollForm() {
@@ -528,7 +565,7 @@
                 <input type="text" class="poll-opt-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="ตัวเลือกที่ 1">
                 <input type="text" class="poll-opt-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="ตัวเลือกที่ 2">`;
         }
-        
+
         function addPollOptionInput() {
             const wrap = document.getElementById('poll-options-inputs');
             const n = wrap.querySelectorAll('.poll-opt-input').length + 1;
@@ -540,6 +577,7 @@
         }
 
         async function createPoll() {
+            if (!supabaseClient) return;
             const question = document.getElementById('new_poll_question').value.trim();
             const options = Array.from(document.querySelectorAll('.poll-opt-input')).map(i => i.value.trim()).filter(Boolean);
 
@@ -548,7 +586,6 @@
                 return;
             }
 
-            // Deactivate all active polls first
             await supabaseClient.from('polls').update({ is_active: false }).eq('is_active', true);
 
             const { data: poll, error } = await supabaseClient.from('polls').insert([{ question, is_active: true }]).select().single();
@@ -565,6 +602,7 @@
         }
 
         async function fetchPollsAdmin() {
+            if (!supabaseClient) return;
             const container = document.getElementById('polls-container');
             const { data: polls, error } = await supabaseClient.from('polls').select('*, poll_options(*)').order('created_at', { ascending: false });
 
@@ -609,6 +647,7 @@
         }
 
         async function togglePoll(id, activate) {
+            if (!supabaseClient) return;
             if (activate) {
                 await supabaseClient.from('polls').update({ is_active: false }).eq('is_active', true);
             }
@@ -619,6 +658,7 @@
 
         async function deletePoll(id) {
             if (!confirm('ยืนยันการลบโพลนี้? ตัวเลือกทั้งหมดจะถูกลบด้วย')) return;
+            if (!supabaseClient) return;
             await supabaseClient.from('poll_options').delete().eq('poll_id', id);
             const { error } = await supabaseClient.from('polls').delete().eq('id', id);
             if (!error) { showToast('ลบโพลแล้ว', 'success'); fetchPollsAdmin(); fetchStats(); }
@@ -626,7 +666,7 @@
         }
 
         // ==================================================
-        // 📰 PR POSTS MANAGEMENT
+        // 📰 PR POSTS
         // ==================================================
         function openPostForm() { document.getElementById('post-form-card').classList.remove('hidden'); }
         function closePostForm() {
@@ -636,6 +676,7 @@
         }
 
         async function createPost() {
+            if (!supabaseClient) return;
             const category = document.getElementById('new_post_category').value;
             const title = document.getElementById('new_post_title').value.trim();
             const content = document.getElementById('new_post_content').value.trim();
@@ -648,6 +689,7 @@
         }
 
         async function fetchPostsAdmin() {
+            if (!supabaseClient) return;
             const container = document.getElementById('posts-container');
             const { data: posts, error } = await supabaseClient.from('pr_posts').select('*').order('created_at', { ascending: false });
 
@@ -668,6 +710,7 @@
 
         async function deletePost(id) {
             if (!confirm('ยืนยันการลบข่าวนี้?')) return;
+            if (!supabaseClient) return;
             const { error } = await supabaseClient.from('pr_posts').delete().eq('id', id);
             if (!error) { showToast('ลบข่าวแล้ว', 'success'); fetchPostsAdmin(); fetchStats(); }
             else showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
@@ -676,13 +719,17 @@
         // ==================================================
         // ⚙️ INITIALIZATION
         // ==================================================
-        document.addEventListener('DOMContentLoaded', checkAdminSession);
-        
-        supabaseClient.auth.onAuthStateChange((event) => {
-            if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-                checkAdminSession();
-            }
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAdminSession();
         });
+
+        if (supabaseClient) {
+            supabaseClient.auth.onAuthStateChange((event) => {
+                if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+                    checkAdminSession();
+                }
+            });
+        }
     </script>
 </body>
 </html>

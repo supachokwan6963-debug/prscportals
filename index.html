@@ -309,7 +309,7 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // ==================================================
-        // 🧼 UTIL: กัน XSS ตอน render ข้อความที่มาจากผู้ใช้
+        // 🧼 UTIL: กัน XSS ตอน render ข้อความ
         // ==================================================
         function escapeHTML(str) {
             if (str === null || str === undefined) return '';
@@ -597,7 +597,7 @@
         }
 
         // ==================================================
-        // 📥 FETCH DATA (POSTS, POLLS, IDEAS)
+        // 📥 FETCH & VOTE SYSTEM (POSTS, POLLS, IDEAS)
         // ==================================================
         async function fetchPRPosts() {
             const container = document.getElementById('pr-posts-container');
@@ -623,9 +623,16 @@
             });
         }
 
+        // 🗳️ ดึงและลงคะแนนโพล
         async function fetchActivePoll() {
             const card = document.getElementById('active-poll-card');
-            const { data: poll, error } = await supabaseClient.from('polls').select('*, poll_options(*)').eq('is_active', true).maybeSingle();
+            const { data: poll, error } = await supabaseClient
+                .from('polls')
+                .select('*, poll_options(*)')
+                .eq('is_active', true)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
 
             if (error || !poll) {
                 card.innerHTML = `
@@ -636,24 +643,65 @@
                 return;
             }
 
+            const hasVoted = localStorage.getItem(`voted_poll_${poll.id}`);
+            const totalVotes = (poll.poll_options || []).reduce((sum, opt) => sum + (opt.votes_count || 0), 0);
+
             let optionsHTML = '';
-            poll.poll_options.forEach((opt) => {
+            (poll.poll_options || []).forEach((opt) => {
+                const votes = opt.votes_count || 0;
+                const percent = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
+
                 optionsHTML += `
-                    <button class="poll-option-btn w-full bg-white/10 hover:bg-white/20 border border-transparent text-white font-medium py-3.5 px-5 rounded-xl text-sm text-left flex justify-between items-center group mb-3">
-                        <span>${escapeHTML(opt.option_text)}</span>
-                        <span class="text-white/60 font-medium text-xs group-hover:text-white transition-colors">${opt.votes_count || 0} โหวต</span>
-                    </button>`;
+                    <div class="mb-3">
+                        <button onclick="votePollOption('${opt.id}', ${votes}, '${poll.id}')" 
+                                ${hasVoted ? 'disabled' : ''} 
+                                class="poll-option-btn w-full bg-white/10 hover:bg-white/20 border border-transparent text-white font-medium py-3.5 px-5 rounded-xl text-sm text-left flex justify-between items-center group transition-all disabled:opacity-80 disabled:cursor-default">
+                            <span>${escapeHTML(opt.option_text)}</span>
+                            <span class="text-amber-300 font-bold text-xs">${votes} โหวต (${percent}%)</span>
+                        </button>
+                        ${hasVoted ? `
+                        <div class="w-full bg-white/10 rounded-full h-1.5 mt-1 overflow-hidden">
+                            <div class="bg-amber-400 h-1.5 rounded-full transition-all duration-500" style="width: ${percent}%"></div>
+                        </div>` : ''}
+                    </div>`;
             });
 
             card.innerHTML = `
                 <div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-bl-full blur-2xl"></div>
                 <div class="relative z-10">
-                    <span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Live Vote</span>
-                    <h3 class="font-bold text-lg text-white mt-5 mb-6 leading-snug">${escapeHTML(poll.question)}</h3>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Live Vote</span>
+                        <span class="text-xs text-slate-400"><i class="fa-solid fa-users mr-1"></i>รวม ${totalVotes} โหวต</span>
+                    </div>
+                    <h3 class="font-bold text-lg text-white mt-3 mb-6 leading-snug">${escapeHTML(poll.question)}</h3>
                     <div>${optionsHTML}</div>
+                    ${hasVoted ? '<p class="text-xs text-amber-400 text-center mt-4"><i class="fa-solid fa-circle-check mr-1"></i> คุณได้ลงคะแนนโหวตโพลนี้แล้ว</p>' : ''}
                 </div>`;
         }
 
+        async function votePollOption(optionId, currentVotes, pollId) {
+            if (localStorage.getItem(`voted_poll_${pollId}`)) {
+                showToast('คุณได้ลงคะแนนโหวตโพลนี้ไปแล้วครับ', 'error');
+                return;
+            }
+
+            showToast('กำลังบันทึกคะแนนโหวต...', 'loading', 0);
+
+            const { error } = await supabaseClient
+                .from('poll_options')
+                .update({ votes_count: (currentVotes || 0) + 1 })
+                .eq('id', optionId);
+
+            if (!error) {
+                localStorage.setItem(`voted_poll_${pollId}`, 'true');
+                showToast('ลงคะแนนโหวตเรียบร้อยแล้ว!', 'success');
+                fetchActivePoll();
+            } else {
+                showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
+            }
+        }
+
+        // 💡 ดึงและโหวตสนับสนุน Student Voice
         async function fetchStudentIdeas() {
             const container = document.getElementById('ideas-container');
             const { data: ideas, error } = await supabaseClient.from('student_ideas').select('*').eq('is_approved', true).order('votes', { ascending: false });
@@ -680,17 +728,43 @@
                     imgHtml = `<img src="${escapeHTML(imgUrl)}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 cursor-pointer shrink-0 hover:opacity-80 transition-opacity" onclick="openLightbox('${escapeHTML(imgUrl)}')">`;
                 }
 
+                const hasVoted = localStorage.getItem(`voted_idea_${idea.id}`);
+
                 container.innerHTML += `
                     <div class="card-lift flex items-center justify-between p-4 bg-white border border-slate-100 shadow-sm rounded-2xl enter-item gap-3" style="animation-delay:${i * 0.08}s">
                         <div class="flex items-center gap-3 overflow-hidden">
                             ${imgHtml}
                             <p class="text-sm font-medium text-slate-800 truncate">${escapeHTML(idea.title)}</p>
                         </div>
-                        <button class="bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200 text-xs font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 transition-colors shrink-0 shadow-sm">
+                        <button onclick="upvoteIdea('${idea.id}', ${idea.votes || 0})"
+                                ${hasVoted ? 'disabled' : ''}
+                                class="bg-slate-50 hover:bg-amber-50 text-slate-600 hover:text-amber-700 border border-slate-200 text-xs font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 transition-colors shrink-0 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
                             <i class="fa-solid fa-caret-up text-amber-500"></i> ${idea.votes || 0}
                         </button>
                     </div>`;
             });
+        }
+
+        async function upvoteIdea(ideaId, currentVotes) {
+            if (localStorage.getItem(`voted_idea_${ideaId}`)) {
+                showToast('คุณเคยโหวตไอเดียนี้ไปแล้วครับ', 'error');
+                return;
+            }
+
+            showToast('กำลังบันทึกการโหวต...', 'loading', 0);
+
+            const { error } = await supabaseClient
+                .from('student_ideas')
+                .update({ votes: (currentVotes || 0) + 1 })
+                .eq('id', ideaId);
+
+            if (!error) {
+                localStorage.setItem(`voted_idea_${ideaId}`, 'true');
+                showToast('โหวตสนับสนุนไอเดียสำเร็จ!', 'success');
+                fetchStudentIdeas();
+            } else {
+                showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
+            }
         }
 
         // ==================================================
@@ -884,7 +958,7 @@
                 document.getElementById('idea_title').value = '';
                 clearIdeaImage();
 
-                // Optimistic UI Display
+                // Display Temp Preview for User
                 const container = document.getElementById('ideas-container');
                 if (container.innerHTML.includes('ยังไม่มีไอเดียเสนอแนะ')) {
                     container.innerHTML = '';

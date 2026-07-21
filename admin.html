@@ -708,50 +708,93 @@
             fetchStats();
         }
 
-        async function fetchPollsAdmin() {
-            if (!supabaseClient) return;
-            const container = document.getElementById('polls-container');
-            const { data: polls, error } = await supabaseClient.from('polls').select('*, poll_options(*)').order('created_at', { ascending: false });
+// 🗳️ ดึงโพลฝั่งแอดมิน (ชัวร์ 100%)
+async function fetchPollsAdmin() {
+    if (!supabaseClient) return;
+    const container = document.getElementById('polls-container');
+    if (!container) return;
 
-            if (error || !polls || polls.length === 0) {
-                container.innerHTML = `<div class="bg-white rounded-3xl p-10 border border-slate-100 text-center text-slate-400"><i class="fa-solid fa-square-poll-vertical text-3xl mb-3 opacity-30"></i><p class="text-sm">ยังไม่มีโพลในระบบ</p></div>`;
-                return;
-            }
+    try {
+        // 1. ดึงรายการโพลทั้งหมด
+        const { data: polls, error: pollError } = await supabaseClient
+            .from('polls')
+            .select('*')
+            .order('created_at', { ascending: false });
 
-            container.innerHTML = polls.map(poll => {
-                const totalVotes = (poll.poll_options || []).reduce((s, o) => s + (o.votes_count || 0), 0);
-                const optionsHTML = (poll.poll_options || []).sort((a, b) => (b.votes_count || 0) - (a.votes_count || 0)).map(opt => {
-                    const pct = totalVotes ? Math.round((opt.votes_count || 0) / totalVotes * 100) : 0;
-                    return `
-                        <div class="mb-2">
-                            <div class="flex justify-between text-xs text-slate-600 mb-1">
-                                <span>${escapeHTML(opt.option_text)}</span>
-                                <span class="font-bold">${opt.votes_count || 0} (${pct}%)</span>
-                            </div>
-                            <div class="w-full bg-slate-100 rounded-full h-2">
-                                <div class="bg-red-800 h-2 rounded-full" style="width:${pct}%"></div>
-                            </div>
-                        </div>`;
-                }).join('');
+        if (pollError) {
+            console.error("❌ Admin Polls Query Error:", pollError);
+        }
 
+        if (pollError || !polls || polls.length === 0) {
+            container.innerHTML = `
+                <div class="bg-white rounded-3xl p-10 border border-slate-100 text-center text-slate-400">
+                    <i class="fa-solid fa-square-poll-vertical text-3xl mb-3 opacity-30"></i>
+                    <p class="text-sm">ยังไม่มีโพลในระบบ</p>
+                </div>`;
+            return;
+        }
+
+        // 2. ดึงตัวเลือกทั้งหมดมาแมปเข้ากับแต่ละโพล
+        const pollIds = polls.map(p => p.id);
+        const { data: options, error: optError } = await supabaseClient
+            .from('poll_options')
+            .select('*')
+            .in('poll_id', pollIds);
+
+        if (optError) {
+            console.error("❌ Admin Poll Options Query Error:", optError);
+        }
+
+        polls.forEach(p => {
+            p.poll_options = (options || []).filter(o => o.poll_id === p.id);
+        });
+
+        // 3. แสดงผลโพล
+        container.innerHTML = polls.map(poll => {
+            const totalVotes = (poll.poll_options || []).reduce((sum, opt) => sum + (opt.votes_count || 0), 0);
+            
+            const optionsList = (poll.poll_options || []).map(opt => {
+                const votes = opt.votes_count || 0;
+                const percent = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
                 return `
-                    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm enter-item">
-                        <div class="flex items-start justify-between gap-3 mb-3">
-                            <div>
-                                <span class="status-pill ${poll.is_active ? 'status-in_progress' : 'status-resolved'}">${poll.is_active ? 'กำลังเปิดโหวต' : 'ปิดแล้ว'}</span>
-                                <h3 class="font-bold text-slate-900 mt-2">${escapeHTML(poll.question)}</h3>
-                            </div>
-                            <div class="flex gap-2 shrink-0">
-                                ${poll.is_active ? `<button onclick="togglePoll('${poll.id}', false)" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold px-3 py-1.5 rounded-lg">ปิดโพล</button>`
-                                                  : `<button onclick="togglePoll('${poll.id}', true)" class="text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold px-3 py-1.5 rounded-lg">เปิดโพล</button>`}
-                                <button onclick="deletePoll('${poll.id}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-700 font-bold px-3 py-1.5 rounded-lg"><i class="fa-solid fa-trash"></i></button>
-                            </div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-semibold text-slate-700">
+                            <span>${escapeHTML(opt.option_text)}</span>
+                            <span class="text-slate-500">${votes} โหวต (${percent}%)</span>
                         </div>
-                        ${optionsHTML}
-                        <p class="text-[11px] text-slate-400 mt-2">รวม ${totalVotes} โหวต</p>
+                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                            <div class="bg-red-800 h-2 rounded-full" style="width: ${percent}%"></div>
+                        </div>
                     </div>`;
             }).join('');
-        }
+
+            return `
+                <div class="bg-white border ${poll.is_active ? 'border-red-200 ring-2 ring-red-800/10' : 'border-slate-200'} rounded-3xl p-6 shadow-sm space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="status-pill ${poll.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}">
+                                ${poll.is_active ? '● กำลังเปิดโหวต' : 'ปิดโหวตแล้ว'}
+                            </span>
+                            <span class="text-xs text-slate-400"><i class="fa-solid fa-users mr-1"></i>รวม ${totalVotes} โหวต</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="togglePollActive('${poll.id}', ${poll.is_active})" class="text-xs font-bold px-3 py-1.5 rounded-xl border ${poll.is_active ? 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100' : 'bg-red-800 text-white hover:bg-red-900'} transition-all">
+                                ${poll.is_active ? 'ปิดโหวต' : 'เปิดใช้งานโพลนี้'}
+                            </button>
+                            <button onclick="deletePoll('${poll.id}')" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-red-50 text-red-800 hover:bg-red-100 transition-all">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <h3 class="font-bold text-base text-slate-900">${escapeHTML(poll.question)}</h3>
+                    <div class="space-y-3 pt-2 border-t border-slate-100">${optionsList}</div>
+                </div>`;
+        }).join('');
+
+    } catch (err) {
+        console.error("❌ Unexpected fetchPollsAdmin Error:", err);
+    }
+}
 
         async function togglePoll(id, activate) {
             if (!supabaseClient) return;

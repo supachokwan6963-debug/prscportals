@@ -272,6 +272,18 @@
                                 <option value="อื่นๆ">เรื่องอื่นๆ</option>
                             </select>
                         </div>
+                        <div class="grid grid-cols-2 gap-3 items-end">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">เบอร์โทร</label>
+                                <input type="tel" id="sos_phone" placeholder="08x-xxx-xxxx" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:border-red-800 transition-colors">
+                            </div>
+                            <div class="pb-3">
+                                <label class="flex items-center gap-2 cursor-pointer select-none">
+                                    <input type="checkbox" id="sos_anonymous" onchange="toggleSOSAnonymous()" class="w-4 h-4 rounded border-slate-300 text-red-800 focus:ring-red-800">
+                                    <span class="text-xs font-semibold text-slate-600">ไม่ประสงค์ออกนาม (Anonymous)</span>
+                                </label>
+                            </div>
+                        </div>
                         <div>
                             <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">รายละเอียดปัญหา</label>
                             <textarea id="sos_detail" rows="4" required placeholder="ระบุรายละเอียดปัญหาที่คุณพบเจอ เพื่อให้สภาฯ เข้าช่วยเหลือ..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:border-red-800 transition-colors resize-none"></textarea>
@@ -845,6 +857,18 @@
             document.getElementById('idea_image_preview').src = '';
         }
 
+        function toggleSOSAnonymous() {
+            const isAnon = document.getElementById('sos_anonymous').checked;
+            const phoneInput = document.getElementById('sos_phone');
+            phoneInput.disabled = isAnon;
+            if (isAnon) {
+                phoneInput.value = '';
+                phoneInput.classList.add('opacity-50');
+            } else {
+                phoneInput.classList.remove('opacity-50');
+            }
+        }
+
         // ==================================================
         // 📤 FORM SUBMISSIONS (SOS & IDEAS)
         // ==================================================
@@ -852,6 +876,8 @@
             e.preventDefault();
             const btn = document.getElementById('sos_submit_btn');
             const category = document.getElementById('sos_category').value;
+            const isAnonymous = document.getElementById('sos_anonymous').checked;
+            const phone = document.getElementById('sos_phone').value.trim();
             const detail = document.getElementById('sos_detail').value.trim();
             const fileInput = document.getElementById('sos_image');
             const file = fileInput.files[0];
@@ -874,16 +900,18 @@
                 const studentIdStr = session.user.email.split('@')[0];
                 let studentGrade = null;
                 let studentRoom = null;
+                let studentName = null;
                 
                 const { data: studentInfo } = await supabaseClient
                     .from('students')
-                    .select('grade, room')
+                    .select('grade, room, fullname')
                     .eq('student_id', studentIdStr)
                     .maybeSingle();
                     
                 if (studentInfo) {
                     studentGrade = studentInfo.grade;
                     studentRoom = studentInfo.room;
+                    studentName = studentInfo.fullname;
                 }
 
                 let imagePath = null;
@@ -908,13 +936,19 @@
                     detail: detail,
                     image_path: imagePath,
                     status: 'pending',
-                    reporter_grade: studentGrade,
-                    reporter_room: studentRoom
+                    is_anonymous: isAnonymous,
+                    reporter_grade: isAnonymous ? null : studentGrade,
+                    reporter_room: isAnonymous ? null : studentRoom,
+                    reporter_name: isAnonymous ? null : studentName,
+                    reporter_phone: isAnonymous ? null : (phone || null)
                 }]);
 
                 if (insertError) throw insertError;
 
                 showToast('ส่งเรื่องร้องเรียนเรียบร้อยแล้ว ทีมสภาฯ จะเข้าตรวจสอบให้เร็วที่สุดครับ!', 'success');
+                document.getElementById('sos_phone').value = '';
+                document.getElementById('sos_anonymous').checked = false;
+                toggleSOSAnonymous();
                 document.getElementById('sos_detail').value = '';
                 clearSOSImage(); 
             } catch (err) {

@@ -336,7 +336,7 @@
         }
 
         // ==================================================
-        // 🖼️ IMAGE UPLOAD HELPERS (reuses the existing "sos-images" bucket, folders: polls/, posts/)
+        // 🖼️ IMAGE UPLOAD HELPERS (bucket: "public-images" — must be created with public=true, see setup notes)
         // ==================================================
         function previewImage(input, previewId) {
             const img = document.getElementById(previewId);
@@ -350,9 +350,9 @@
             if (!file) return null;
             const ext = file.name.split('.').pop();
             const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-            const { error } = await supabaseClient.storage.from('sos-images').upload(path, file);
+            const { error } = await supabaseClient.storage.from('public-images').upload(path, file);
             if (error) { showToast('อัปโหลดรูปไม่สำเร็จ: ' + error.message, 'error', 0); return null; }
-            const { data } = supabaseClient.storage.from('sos-images').getPublicUrl(path);
+            const { data } = supabaseClient.storage.from('public-images').getPublicUrl(path);
             return data?.publicUrl || null;
         }
 
@@ -1054,3 +1054,4 @@
     </script>
 </body>
 </html>
+            <op

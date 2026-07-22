@@ -953,7 +953,7 @@
                 clearSOSImage(); 
             } catch (err) {
                 console.error('submitSOS error:', err);
-                showToast('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง', 'error');
+                showToast('เกิดข้อผิดพลาด: ' + (err.message || 'กรุณาลองใหม่อีกครั้ง'), 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> ส่งเรื่องร้องเรียน';

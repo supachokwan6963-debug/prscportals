@@ -615,10 +615,16 @@
             container.innerHTML = '';
             posts.forEach((post, i) => {
                 container.innerHTML += `
-                    <div class="bg-white border border-slate-100 p-6 rounded-3xl shadow-sm card-lift enter-item" style="animation-delay:${i * 0.1}s">
-                        <span class="text-[10px] font-bold px-2.5 py-1 bg-red-50 text-red-800 rounded-full uppercase tracking-wider">${escapeHTML(post.category || 'ข่าวทั่วไป')}</span>
-                        <h3 class="font-bold text-base text-slate-900 mt-4 mb-2 leading-snug">${escapeHTML(post.title)}</h3>
-                        <p class="text-sm text-slate-600 line-clamp-3 leading-relaxed">${escapeHTML(post.content)}</p>
+                    <div class="bg-white border border-slate-100 rounded-3xl shadow-sm card-lift enter-item overflow-hidden" style="animation-delay:${i * 0.1}s">
+                        ${post.image_url ? `
+                        <div class="w-full aspect-video bg-slate-100 cursor-pointer overflow-hidden" onclick="openLightbox('${escapeHTML(post.image_url)}')">
+                            <img src="${escapeHTML(post.image_url)}" loading="lazy" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
+                        </div>` : ''}
+                        <div class="p-6">
+                            <span class="text-[10px] font-bold px-2.5 py-1 bg-red-50 text-red-800 rounded-full uppercase tracking-wider">${escapeHTML(post.category || 'ข่าวทั่วไป')}</span>
+                            <h3 class="font-bold text-base text-slate-900 mt-4 mb-2 leading-snug">${escapeHTML(post.title)}</h3>
+                            <p class="text-sm text-slate-600 line-clamp-3 leading-relaxed">${escapeHTML(post.content)}</p>
+                        </div>
                     </div>`;
             });
         }
@@ -688,6 +694,10 @@
                         <span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Live Vote</span>
                         <span class="text-xs text-slate-400"><i class="fa-solid fa-users mr-1"></i>รวม ${totalVotes} โหวต</span>
                     </div>
+                    ${poll.image_url ? `
+                    <div class="w-full aspect-video bg-white/5 rounded-2xl overflow-hidden mt-4 cursor-pointer" onclick="openLightbox('${escapeHTML(poll.image_url)}')">
+                        <img src="${escapeHTML(poll.image_url)}" loading="lazy" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
+                    </div>` : ''}
                     <h3 class="font-bold text-lg text-white mt-3 mb-6 leading-snug">${escapeHTML(poll.question)}</h3>
                     <div>${optionsHTML}</div>
                     ${hasVoted ? '<p class="text-xs text-amber-400 text-center mt-4"><i class="fa-solid fa-circle-check mr-1"></i> คุณได้ลงคะแนนโหวตโพลนี้แล้ว</p>' : ''}

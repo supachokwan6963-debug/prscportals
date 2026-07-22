@@ -336,7 +336,7 @@
         }
 
         // ==================================================
-        // 🖼️ IMAGE UPLOAD HELPERS (bucket: "public-images", must be a PUBLIC bucket)
+        // 🖼️ IMAGE UPLOAD HELPERS (reuses the existing "sos-images" bucket, folders: polls/, posts/)
         // ==================================================
         function previewImage(input, previewId) {
             const img = document.getElementById(previewId);
@@ -350,9 +350,9 @@
             if (!file) return null;
             const ext = file.name.split('.').pop();
             const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-            const { error } = await supabaseClient.storage.from('public-images').upload(path, file);
-            if (error) { showToast('อัปโหลดรูปไม่สำเร็จ: ' + error.message, 'error'); return null; }
-            const { data } = supabaseClient.storage.from('public-images').getPublicUrl(path);
+            const { error } = await supabaseClient.storage.from('sos-images').upload(path, file);
+            if (error) { showToast('อัปโหลดรูปไม่สำเร็จ: ' + error.message, 'error', 0); return null; }
+            const { data } = supabaseClient.storage.from('sos-images').getPublicUrl(path);
             return data?.publicUrl || null;
         }
 
@@ -794,7 +794,11 @@
             await supabaseClient.from('polls').update({ is_active: false }).eq('is_active', true);
 
             const imageFile = document.getElementById('new_poll_image').files[0];
-            const imageUrl = imageFile ? await uploadImageToStorage(imageFile, 'polls') : null;
+            let imageUrl = null;
+            if (imageFile) {
+                imageUrl = await uploadImageToStorage(imageFile, 'polls');
+                if (!imageUrl) return; // upload failed — uploadImageToStorage already showed the real error, stop here instead of publishing without the image
+            }
 
             const { data: poll, error } = await supabaseClient.from('polls').insert([{ question, is_active: true, image_url: imageUrl }]).select().single();
             if (error) { showToast('สร้างโพลไม่สำเร็จ: ' + error.message, 'error'); return; }
@@ -958,7 +962,11 @@
             if (!title || !content) { showToast('กรุณากรอกหัวข้อและเนื้อหาข่าว', 'error'); return; }
 
             const imageFile = document.getElementById('new_post_image').files[0];
-            const imageUrl = imageFile ? await uploadImageToStorage(imageFile, 'posts') : null;
+            let imageUrl = null;
+            if (imageFile) {
+                imageUrl = await uploadImageToStorage(imageFile, 'posts');
+                if (!imageUrl) return; // upload failed — uploadImageToStorage already showed the real error, stop here instead of publishing without the image
+            }
 
             const { error } = await supabaseClient.from('pr_posts').insert([{ category, title, content, image_url: imageUrl }]);
             if (!error) { showToast('เผยแพร่ข่าวเรียบร้อยแล้ว', 'success'); closePostForm(); fetchPostsAdmin(); fetchStats(); }

@@ -553,6 +553,11 @@
                                 <span class="text-[10px] font-bold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full uppercase tracking-wider">${escapeHTML(t.category || '-')}</span>
                                 ${t.reporter_grade ? `<span class="text-[10px] text-slate-400">ม.${escapeHTML(t.reporter_grade)}/${escapeHTML(t.reporter_room || '-')}</span>` : ''}
                             </div>
+                            <p class="text-xs font-semibold ${t.is_anonymous ? 'text-slate-400 italic' : 'text-slate-600'} mb-1">
+                                <i class="fa-regular fa-user mr-1"></i>
+                                ${t.is_anonymous ? 'ไม่ประสงค์ออกนาม' : escapeHTML(t.reporter_name || 'ไม่ระบุชื่อ')}
+                                ${(!t.is_anonymous && t.reporter_phone) ? ` &middot; <i class="fa-solid fa-phone mr-1"></i>${escapeHTML(t.reporter_phone)}` : ''}
+                            </p>
                             <p class="text-sm text-slate-800 leading-relaxed">${escapeHTML(t.detail)}</p>
                             <p class="text-[11px] text-slate-400 mt-2">${t.created_at ? new Date(t.created_at).toLocaleString('th-TH') : ''}</p>
                         </div>
@@ -658,15 +663,18 @@
             }
 
             let csvContent = "\uFEFF"; // UTF-8 BOM สำหรับอ่านภาษาไทยใน Excel
-            csvContent += "ID,หมวดหมู่,รายละเอียด,ชั้น,ห้อง,สถานะ,วันที่แจ้ง\n";
+            csvContent += "ID,หมวดหมู่,รายละเอียด,ชื่อ-สกุล,เบอร์โทร,ชั้น,ห้อง,ไม่ประสงค์ออกนาม,สถานะ,วันที่แจ้ง\n";
 
             tickets.forEach(t => {
                 const cleanDetail = `"${(t.detail || '').replace(/"/g, '""')}"`;
                 const cleanCat = `"${(t.category || '').replace(/"/g, '""')}"`;
+                const cleanName = `"${(t.is_anonymous ? '' : (t.reporter_name || '')).replace(/"/g, '""')}"`;
+                const phone = t.is_anonymous ? '' : (t.reporter_phone || '');
                 const grade = t.reporter_grade || '';
                 const room = t.reporter_room || '';
+                const anon = t.is_anonymous ? 'ใช่' : '';
                 const dateStr = t.created_at ? new Date(t.created_at).toLocaleString('th-TH') : '';
-                csvContent += `${t.id},${cleanCat},${cleanDetail},${grade},${room},${statusLabel(t.status)},${dateStr}\n`;
+                csvContent += `${t.id},${cleanCat},${cleanDetail},${cleanName},${phone},${grade},${room},${anon},${statusLabel(t.status)},${dateStr}\n`;
             });
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
